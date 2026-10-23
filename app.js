@@ -167,7 +167,12 @@ function svgQR(t){try{return DFQR.svgQR(t)}catch(e){return '<p class="warn">Trop
 function qrAnime(parts){if(RQ.h)clearInterval(RQ.h);RQ.h=null;let i=0;const z=$('#rqr');if(!z)return;z.innerHTML=svgQR(parts[0]);const n=$('#rqn');if(n)n.textContent=parts.length>1?'1 / '+parts.length+' · laisse le prof viser jusqu’au bip':'';
   if(parts.length>1)RQ.h=setInterval(()=>{i=(i+1)%parts.length;const q=$('#rqr'),m=$('#rqn');if(!q){clearInterval(RQ.h);RQ.h=null;return}q.innerHTML=svgQR(parts[i]);if(m)m.textContent=(i+1)+' / '+parts.length+' · laisse le prof viser jusqu’au bip'},1100)}
 async function montrerQR(sids,k){
-  if(!QRS){const F=fichiers(sids);QRS={sids,L:[]};for(const f of F){QRS.L.push({titre:prenomDe(f.o.eleve)+' · '+SBY[f.o.seance].n,parts:morceaux(await DFQR.encoder(qrDe(f.o)))})}}
+  /* un QR par binôme et par séance (les séances des deux élèves) ; si c'est trop long, un QR par élève */
+  if(!QRS){QRS={sids,L:[]};for(const sid of sids){const F=fichiers([sid]);if(!F.length)continue;const o=F[0].o;
+      const txt=await DFQR.encoder({a:'DFE',v:1,t:'G',y:o.cycle,c:o.classe,s:sid,d:o.date,ts:Math.round(Date.now()/1000),gr:o.groupe,
+        R:F.map(f=>({e:f.o.eleve,x:f.o.sexe,m:f.o.vmaManuelle||undefined,co:f.o.coach||undefined,cr:f.o.coachRemplacant?1:undefined,D:f.o.donnees}))});
+      if(txt.length<=1800||F.length===1)QRS.L.push({titre:F.map(f=>prenomDe(f.o.eleve)).join(' & ')+' · '+SBY[sid].n,parts:txt.length<=1800?[txt]:morceaux(txt)});
+      else for(const f of F)QRS.L.push({titre:prenomDe(f.o.eleve)+' · '+SBY[sid].n,parts:morceaux(await DFQR.encoder(qrDe(f.o)))})}}
   if(!QRS.L.length){closeModal();return toast('Rien à envoyer pour cette séance.')}
   k=Math.max(0,Math.min(k||0,QRS.L.length-1));const Q=QRS.L[k];
   modal(`<h2>${esc(Q.titre)} · à montrer au prof</h2><p class="muted small">QR ${k+1} sur ${QRS.L.length} · ${esc(G.classe)}</p>

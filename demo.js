@@ -55,6 +55,6 @@ function ouvrirDemo(cy){
   DEMO=true;G=null;ACTIF=null;CLEF=null;attacher(g);V.sid=L[nb-1].id;V.tab='envoi';
   closeModal();render();window.scrollTo(0,0);toast('Mode démo : explore librement, rien n’est enregistré.');
 }
-function bandeauDemo(){return `<div class="demo-bandeau"><span>👀 <b>Mode démo</b><i> · groupe fictif, rien n’est enregistré ni envoyé</i></span><button class="btn sm" data-act="demo" data-v="${G&&G.cy==='T'?'S':'T'}">Voir ${G&&G.cy==='T'?'la Seconde':'la Terminale'}</button><button class="btn sm" data-act="demoQuitter">Quitter la démo</button></div>`}
+function bandeauDemo(){return `<div class="demo-bandeau"><span>👀 <b>Mode démo</b><i> · groupe fictif, rien n’est enregistré ni envoyé</i></span><button class="btn sm" data-act="demo" data-v="${G&&G.cy==='T'?'S':'T'}">Voir ${G&&G.cy==='T'?'la Seconde':'la Terminale'}</button><a class="btn sm" href="../demi-fond-prof/?demo">Voir l’outil prof</a><button class="btn sm" data-act="demoQuitter">Quitter la démo</button></div>`}
 function quitterDemoUrl(){try{if(/[?&]demo\b/.test(location.search))history.replaceState(null,'',location.pathname)}catch(e){}}
 {const m=/[?&]demo(?:=(\w))?/.exec(location.search);if(m)ouvrirDemo((m[1]||'S').toUpperCase());else render()}

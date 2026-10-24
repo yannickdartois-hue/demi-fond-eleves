@@ -260,12 +260,14 @@ const TI={seance:SV('<path d="M4 17c0-6 3-10 8-10s8 4 8 10"/><path d="M8 17c0-3.
 function render(){
   const b=G;document.body.dataset.cy=b?cyOf(b):'';document.body.classList.toggle('home',!b);
   document.querySelectorAll('header [data-need]').forEach(x=>x.hidden=!b);
-  if(!b){$('#sous').textContent='Choisis ton groupe';$('#seances').hidden=true;$('#onglets').hidden=true;$('#main').innerHTML=icons(vChoix());return}
+  if(!b){$('#sous').textContent='Choisis ton groupe';$('#seances').hidden=true;$('#btnSeance').hidden=true;$('#onglets').hidden=true;$('#main').innerHTML=icons(vChoix());return}
   if(!b.runners.length)V.tab='groupe';const L=curSessOf(b);if(!V.sid||!L.some(s=>s.id===V.sid))V.sid=L[0].id;
   V.v=V.tab==='seance'?'sess':V.tab;
   $('#sous').textContent=(b.classe?b.classe+' · ':'')+(b.runners.length?b.runners.map(r=>r.prenom).join(', '):'groupe à compléter');
-  $('#seances').hidden=!b.runners.length;
-  $('#seances').innerHTML=`<span class="lab">${CYC[b.cy].short}</span><div class="strip">${L.map(s=>{const st=sessState(b,s.id);return `<button data-sess="${s.id}" class="${V.sid===s.id&&V.tab==='seance'?'ici':V.sid===s.id?'sel':''} ${st}" aria-label="Séance ${s.n}${st==='sent'?', envoyée':st?', à envoyer':''}">${s.n}</button>`}).join('')}</div>`;
+  /* séance du jour : un seul bouton « S4 ▾ » dans la barre (la séance s'ouvre toute seule ; changer reste à un toucher) */
+  const st0=sessState(b,V.sid),ne0=nonEnvoyees();
+  $('#seances').hidden=true;const bs=$('#btnSeance');bs.hidden=!b.runners.length;
+  bs.innerHTML=`${SBY[V.sid].n} <span aria-hidden="true">▾</span>${ne0.length?'<i class="pt" aria-label="séance à envoyer"></i>':''}`;bs.className='bseance '+(st0||'');
   const ne=nonEnvoyees();
   const O=[['seance','Séance'],['moi','Moi'],['chrono','Chrono'],['envoi','Envoyer'],['groupe','Groupe']];
   if(V.tab!=='chrono'&&CH.run)chStop();
@@ -361,7 +363,7 @@ document.addEventListener('click',async e=>{
   if(!G)return;
   /* navigation */
   if(ds.tab){V.tab=ds.tab;if(ds.tab==='seance'){V.cur=V.cur||0}render();return window.scrollTo(0,0)}
-  if(ds.sess){V.sid=ds.sess;V.tab='seance';V.ri=0;V.cur=0;V.ph='piste';V.presOpen=false;G.jours[today()]=V.sid;save();render();return window.scrollTo(0,0)}
+  if(ds.sess){closeModal();V.sid=ds.sess;V.tab='seance';V.ri=0;V.cur=0;V.ph='piste';V.presOpen=false;G.jours[today()]=V.sid;save();render();return window.scrollTo(0,0)}
   if(ds.ri)return keepScroll(()=>{V.ri=+ds.ri;V.cur=0;render()});
   if(ds.ph){V.ph=ds.ph;V.cur=0;V.tab='seance';render();return window.scrollTo(0,0)}
   if(ds.sx){t.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));t.classList.add('on');return}
@@ -394,6 +396,8 @@ document.addEventListener('click',async e=>{
     case 'chgo':beep(700,60);return chStart();
     case 'chpause':{const r=CH.run;if(!r)return;if(r.paused){r.end=Date.now()+r.left*1000;r.paused=false}else r.paused=true;return render()}
     case 'chstop':chStop();return render();
+    case 'seances':return modal(`<h2>Changer de séance</h2><p class="muted small">${CYC[G.cy].label} · ✓ envoyée · ! à envoyer</p><div class="sgrid">${curSessOf(G).map(x=>{const st=sessState(G,x.id);
+      return `<button class="sbtn ${st} ${x.id===V.sid?'ici':''}" data-sess="${x.id}"><b>${x.n}</b><span>${esc(x.t)}</span><i>${st==='sent'?'✓ envoyée':st==='resend'?'! modifiée : renvoyer':st==='wip'?'! à envoyer':x.id===V.sid?'aujourd’hui':''}</i></button>`}).join('')}</div><div class="row"><button class="btn" data-act="closem">Fermer</button></div>`);
     case 'onetog':DB.opts.one=!oneMode();ecrireRoot();return keepScroll(render);
     case 'presopen':V.presOpen=true;return keepScroll(render);
     case 'presclose':V.presOpen=false;return keepScroll(render);

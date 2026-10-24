@@ -1,6 +1,6 @@
 /* Hors ligne : l'appli est gardée sur la tablette après la 1re ouverture.
-   Après une modification, augmenter VERSION (dfe-v1 → dfe-v6…). */
-const VERSION='dfe-v6';
+   Après une modification, augmenter VERSION (dfe-v1 → dfe-v7…). */
+const VERSION='dfe-v7';
 const FICHIERS=['./','index.html','style.css','donnees.js','logique.js','qrcode.js','jsqr.js','scan.js','vues.js','chrono.js','app.js','demo.js','manifest.webmanifest',
   'icon-32.png','icon-180.png','icon-192.png','icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(VERSION).then(c=>c.addAll(FICHIERS)).then(()=>self.skipWaiting()))});

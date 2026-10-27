@@ -394,7 +394,7 @@ document.addEventListener('click',async e=>{
   if(!a)return;
   switch(a){
     case 'chgo':beep(700,60);return chStart();
-    case 'chpause':{const r=CH.run;if(!r)return;if(r.paused){r.end=Date.now()+r.left*1000;r.paused=false}else r.paused=true;return render()}
+    case 'chpause':{const r=CH.run;if(!r)return;if(r.paused){r.end=Date.now()+r.left*1000;r.paused=false}else r.paused=true;chSave();return render()}
     case 'chstop':chStop();return render();
     case 'seances':return modal(`<h2>Changer de séance</h2><p class="muted small">${CYC[G.cy].label} · ✓ envoyée · ! à envoyer</p><div class="sgrid">${curSessOf(G).map(x=>{const st=sessState(G,x.id);
       return `<button class="sbtn ${st} ${x.id===V.sid?'ici':''}" data-sess="${x.id}"><b>${x.n}</b><span>${esc(x.t)}</span><i>${st==='sent'?'✓ envoyée':st==='resend'?'! modifiée : renvoyer':st==='wip'?'! à envoyer':x.id===V.sid?'aujourd’hui':''}</i></button>`}).join('')}</div><div class="row"><button class="btn" data-act="closem">Fermer</button></div>`);
@@ -489,3 +489,6 @@ function conseilsView(){const D=[
 ['Tactique de course','Pars à ton allure, pas à celle des autres. Couloir 1 : tu ne cours plus loin que si tu dépasses, et tu dépasses en ligne droite. Au couloir 2, un tour de 400 m te coûte environ 7 m de plus.'],
 ['Après la séance','Marcher, boire, se couvrir. Une douleur qui dure plus de 2 jours ou qui fait boiter : préviens le professeur.']];
 return `<section class="card"><h3>Conseils du coureur</h3>${D.map(([t,x])=>`<details class="help"><summary>${t}</summary><div><p>${x}</p></div></details>`).join('')}</section>`}
+
+/* chrono qui reprend après rechargement : on rouvre son écran */
+function chOuvrir(){V.tab='chrono'}

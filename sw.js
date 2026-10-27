@@ -1,6 +1,6 @@
 /* Hors ligne : l'appli est gardée sur la tablette après la 1re ouverture.
    Après une modification, augmenter VERSION (dfe-v1 → dfe-v8…). */
-const VERSION='demi-fond-eleves-v14';
+const VERSION='demi-fond-eleves-v15';
 // Toutes les applis partagent le même stockage (même adresse github.io) : on n'efface QUE les anciennes versions de CETTE appli.
 const MES_CACHES=/^(?:demi\-fond\-eleves\-v|dfe\-v)\d+$/;
 

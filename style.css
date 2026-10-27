@@ -339,3 +339,6 @@ header button.bseance{position:relative;font-weight:900;font-style:italic;font-s
 header button.bseance.sent{border-color:var(--acc);color:var(--acc2)}
 header button.bseance .pt{position:absolute;right:-4px;top:-4px;width:14px;height:14px;border-radius:50%;background:var(--attn-bd);border:2px solid var(--card)}
 .sbtn.ici{box-shadow:var(--sh),inset 0 0 0 3px var(--tartan)}
+
+/* bouton mode d'emploi */
+.baide{flex:0 0 auto;width:40px;height:40px;min-height:40px;padding:0;border-radius:50%;font-weight:900;font-size:19px;line-height:1}

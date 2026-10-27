@@ -273,7 +273,7 @@ function render(){
   if(V.tab!=='chrono'&&CH.run)chStop();
   $('#onglets').innerHTML=O.map(o=>`<button data-tab="${o[0]}" class="${V.tab===o[0]?'ici':''}${o[0]==='envoi'&&ne.length?' alerte':''}">${TI[o[0]]}<b>${o[1]}</b></button>`).join('');
   $('#onglets').hidden=!b.runners.length;
-  const views={seance:sessView,moi:()=>{V.v='prog';const a=progView();V.v='cibles';return a+ciblesView()},chrono:chronoView,envoi:vEnvoi,groupe:vGroupe};
+  const views={seance:sessView,moi:()=>{V.v='prog';const a=progView();V.v='cibles';return a+ciblesView()+conseilsView()},chrono:chronoView,envoi:vEnvoi,groupe:vGroupe};
   const rappel=ne.length&&!['envoi','groupe','seance'].includes(V.tab)&&!(ne.length===1&&ne[0].id===V.sid&&V.tab==='seance')?`<button class="nonenvoye" data-tab="envoi">⚠ ${ne.map(s=>s.n).join(', ')} pas encore envoyée${ne.length>1?'s':''} au professeur — touche ici pour envoyer</button>`:'';
   $('#main').innerHTML=icons((DEMO?bandeauDemo():'')+rappel+(views[V.tab]||sessView)());
   document.documentElement.style.setProperty('--hh',$('header').offsetHeight+'px');
@@ -479,3 +479,13 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
   navigator.serviceWorker.register('sw.js').then(reg=>{reg.update().catch(()=>{});setInterval(()=>reg.update().catch(()=>{}),3600e3)}).catch(()=>{});
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{})});
 }
+
+/* fiche Conseils (idées d'un collègue de l'équipe EPS, relues) */
+function conseilsView(){const D=[
+['Chaussures et tenue','Des chaussures de course lacées serré, pas de semelles plates en toile. Une couche en plus pour l’échauffement et la récupération, que tu enlèves pour courir.'],
+['Manger, boire','Un repas léger 2 h avant le cours (pas à jeun, pas juste après un gros repas). Petites gorgées d’eau avant et entre les courses, pas une bouteille entière.'],
+['S’entraîner hors du cours','Deux sorties de 20 à 30 min par semaine en aisance respiratoire (tu peux parler en courant) font plus progresser qu’une sortie épuisante.'],
+['La veille et le matin d’une épreuve','Dormir, ne pas tester de nouvelles chaussures, manger comme d’habitude. Relis ton projet et ton temps de passage.'],
+['Tactique de course','Pars à ton allure, pas à celle des autres. Couloir 1 : tu ne cours plus loin que si tu dépasses, et tu dépasses en ligne droite. Au couloir 2, un tour de 400 m te coûte environ 7 m de plus.'],
+['Après la séance','Marcher, boire, se couvrir. Une douleur qui dure plus de 2 jours ou qui fait boiter : préviens le professeur.']];
+return `<section class="card"><h3>Conseils du coureur</h3>${D.map(([t,x])=>`<details class="help"><summary>${t}</summary><div><p>${x}</p></div></details>`).join('')}</section>`}

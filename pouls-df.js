@@ -22,17 +22,34 @@
         i.textContent=`Récupération 1 min : ${fc} → ${rec} · −${Math.max(0,fc-rec)} (${EPSPouls.appreciation(fc-rec)})`;bt.insertAdjacentElement('afterend',i)}
     })}
 
+  /* Raccourci « Sur la piste » : la FC de fin de série (bl.fc) se prend juste après la série, pas au bilan
+     (après les étirements, le pouls est redescendu). Même champ que dans le bilan : rien n'est dupliqué. */
+  function raccourciPiste(){
+    try{if(!G||V.tab!=='seance'||V.ph==='fin'||!V.sid)return}catch(e){return}
+    const s=SBY[V.sid],d=donnees();if(!s||!d||d.st||!voit('fc',s))return;
+    const fin=main.querySelector('button.btn.big.full[data-ph="fin"]');if(!fin||main.querySelector('.pouls-piste'))return;
+    const fc=num(getPath(d,'bl.fc')),rec=num(getPath(d,'bl.fcr'));
+    const c=document.createElement('section');c.className='card thin pouls-piste';
+    c.innerHTML=`<p><b>❤ Ma FC en fin de série</b> <span class="muted small">(facultatif) · juste après la dernière série, avant de récupérer</span></p>
+      ${fc!=null?`<p class="small">FC notée : <b>${fc} /min</b>${rec!=null?` · récupération 1 min : ${fc} → ${rec} (−${Math.max(0,fc-rec)}, ${EPSPouls.appreciation(fc-rec)})`:''}</p>`:''}
+      <button type="button" class="eps-pouls-bt" data-pouls-p="bl.fc"><span aria-hidden="true">❤</span> ${fc!=null?'Reprendre mon pouls':'Prendre mon pouls'}</button>`;
+    fin.insertAdjacentElement('beforebegin',c)}
+
   main.addEventListener('click',e=>{const bt=e.target.closest('.eps-pouls-bt');if(!bt)return;e.preventDefault();e.stopPropagation();
     const p=bt.dataset.poulsP;const bilan=p==='bl.fc';
     EPSPouls.ouvrir({
       titre:bilan?'FC en fin de série':'FC après cette allure',
       note:'Mesure tout de suite après l’effort : le pouls baisse vite.',
       recup:true,
-      onFC:v=>{const inp=main.querySelector(`input[data-p="${p}"]`);if(!inp)return;inp.value=String(v);
-        inp.dispatchEvent(new Event('input',{bubbles:true}));inp.dispatchEvent(new Event('change',{bubbles:true}))},
+      onFC:v=>{const d=donnees();if(!d)return;
+        const o=getPath(d,p.replace(/\.fc$/,''));if(o&&typeof o==='object')delete o.fcr;   /* nouvelle mesure : l'ancienne récupération ne vaut plus */
+        const inp=main.querySelector(`input[data-p="${p}"]`);
+        if(inp){inp.value=String(v);inp.dispatchEvent(new Event('input',{bubbles:true}));inp.dispatchEvent(new Event('change',{bubbles:true}));return}
+        setPath(d,p,String(v));saveS();keepScroll(render)},
       onRecup:v=>{const d=donnees();if(!d)return;setPath(d,p+'r',String(v));saveS();keepScroll(render)}
     })},true);
 
-  new MutationObserver(poser).observe(main,{childList:true,subtree:true});
-  poser();
+  const tout=()=>{poser();raccourciPiste()};
+  new MutationObserver(tout).observe(main,{childList:true,subtree:true});
+  tout();
 })();

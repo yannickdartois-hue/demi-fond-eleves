@@ -31,7 +31,7 @@ Les carnets sont **chiffrés** sur la tablette (AES-GCM, clé tirée du code du 
 | `chrono.js` | Chrono de classe (onglet Chrono, commun avec l'outil prof) |
 | `demo.js` | Mode démo (en mémoire seulement) |
 | `qrcode.js`, `jsqr.js` | Bibliothèques QR (création, lecture caméra) |
-| `eps-pouls.js`, `pouls-df.js` | Prise de pouls assistée (15 s comptées × 4, FC de récupération à 1 min) : module commun aux applis EPS + bouton à côté des cases de FC (`al.N.fc`, `bl.fc`) ; la récupération est enregistrée en `al.N.fcr` / `bl.fcr` |
+| `eps-pouls.js`, `pouls-df.js` | Prise de pouls assistée (15 s comptées × 4, FC de récupération à 1 min) : module commun aux applis EPS + bouton à côté des cases de FC (`al.N.fc`, `bl.fc`) ; la récupération est enregistrée en `al.N.fcr` / `bl.fcr` ; dès la S4, carte « Ma FC en fin de série » dans l'onglet *Sur la piste* (même champ `bl.fc` que le bilan) |
 | `sw.js` | Hors ligne : **augmenter `VERSION`** à chaque modification |
 
 ## Formats

@@ -150,14 +150,14 @@ async function validerCode(){
 function nonEnvoyees(){if(!G)return [];return curSessOf(G).filter(s=>['wip','resend'].includes(sessState(G,s.id)))}
 function exportEleve(run,ri,sid){
   const d=run.seances&&run.seances[sid];if(!hasData(d)||(run.imp&&run.imp[sid]))return null;
-  if(!d.st){const v=effV(run,sid);if(v)d._v=R(v*10)/10}
+  if(!d.st){const v=isM(run)?vmmOf(run,sid):effV(run,sid);if(v)d._v=R(v*10)/10}
   const co=d.st?{}:coachOf(G,ri,sid);
   return {app:'demi-fond-eleves',version:1,activite:'Demi-fond',cycle:G.cy,classe:G.classe,eleve:run.full,sexe:run.sexe||'',seance:sid,
     date:G.dates[sid]||jour(G.mod[sid]),exportedAt:new Date().toISOString(),groupe:G.runners.map(r=>r.full),
-    coach:co.n?(co.full||co.n):'',coachRemplacant:!!co.rep,vmaManuelle:run.vmaManuelle||'',resume:resumeSeance(run,sid),donnees:slimSeance(d)};
+    coach:co.n?(co.full||co.n):'',coachRemplacant:!!co.rep,vmaManuelle:run.vmaManuelle||'',parcours:isM(run)?'marche':undefined,resume:resumeSeance(run,sid),donnees:slimSeance(d)};
 }
 function fichiers(sids){const L=[];sids.forEach(sid=>G.runners.forEach((r,ri)=>{const o=exportEleve(r,ri,sid);if(o)L.push({nom:nomFichier(G.classe,r.full,sid),o})}));return L}
-const qrDe=o=>({a:'DFE',v:1,t:'S',y:o.cycle,c:o.classe,e:o.eleve,x:o.sexe,s:o.seance,d:o.date,ts:Math.round(Date.now()/1000),m:o.vmaManuelle||undefined,gr:o.groupe,co:o.coach||undefined,cr:o.coachRemplacant?1:undefined,D:o.donnees});
+const qrDe=o=>({a:'DFE',v:1,t:'S',y:o.cycle,c:o.classe,e:o.eleve,x:o.sexe,s:o.seance,d:o.date,ts:Math.round(Date.now()/1000),m:o.vmaManuelle||undefined,gr:o.groupe,co:o.coach||undefined,cr:o.coachRemplacant?1:undefined,pc:o.parcours==='marche'?'m':undefined,D:o.donnees});
 function marquerEnvoye(sids,mode){const t=Date.now();sids.forEach(sid=>{G.sent[sid]=t;G.envoi[sid]=Object.assign(G.envoi[sid]||{},{[mode]:t})});save()}
 /* QR en plusieurs morceaux (texte trop long pour un seul QR) */
 function morceaux(txt){if(txt.length<=QR_MAX)return [txt];const tag=Math.random().toString(36).slice(2,6),n=Math.ceil(txt.length/QR_MAX),out=[];
@@ -170,7 +170,7 @@ async function montrerQR(sids,k){
   /* un QR par binôme et par séance (les séances des deux élèves) ; si c'est trop long, un QR par élève */
   if(!QRS){QRS={sids,L:[]};for(const sid of sids){const F=fichiers([sid]);if(!F.length)continue;const o=F[0].o;
       const txt=await DFQR.encoder({a:'DFE',v:1,t:'G',y:o.cycle,c:o.classe,s:sid,d:o.date,ts:Math.round(Date.now()/1000),gr:o.groupe,
-        R:F.map(f=>({e:f.o.eleve,x:f.o.sexe,m:f.o.vmaManuelle||undefined,co:f.o.coach||undefined,cr:f.o.coachRemplacant?1:undefined,D:f.o.donnees}))});
+        R:F.map(f=>({e:f.o.eleve,x:f.o.sexe,m:f.o.vmaManuelle||undefined,co:f.o.coach||undefined,cr:f.o.coachRemplacant?1:undefined,pc:f.o.parcours==='marche'?'m':undefined,D:f.o.donnees}))});
       if(txt.length<=1800||F.length===1)QRS.L.push({titre:F.map(f=>prenomDe(f.o.eleve)).join(' & ')+' · '+SBY[sid].n,parts:txt.length<=1800?[txt]:morceaux(txt)});
       else for(const f of F)QRS.L.push({titre:prenomDe(f.o.eleve)+' · '+SBY[sid].n,parts:morceaux(await DFQR.encoder(qrDe(f.o)))})}}
   if(!QRS.L.length){closeModal();return toast('Rien à envoyer pour cette séance.')}
@@ -207,7 +207,7 @@ async function enregistrerFichiers(sids){
 
 /* ---------- Changement de groupe / reprise : QR de l'élève (toutes ses séances) ---------- */
 function historiqueEleve(r){const se={};Object.entries(r.seances||{}).forEach(([sid,d])=>{if(hasData(d))se[sid]=slimSeance(d)});
-  return {a:'DFE',v:1,t:'T',c:G.classe,y:G.cy,e:r.full,x:r.sexe||'',vm:r.vmaManuelle||'',se}}
+  return {a:'DFE',v:1,t:'T',c:G.classe,y:G.cy,e:r.full,x:r.sexe||'',vm:r.vmaManuelle||'',pc:r.pc||undefined,se}}
 async function montrerTransfert(i){const r=G.runners[i];const parts=morceaux(await DFQR.encoder(historiqueEleve(r)));
   modal(`<h2>${esc(r.prenom)} change de groupe</h2><p class="muted small">Sur la tablette du nouveau groupe : Groupe → « Un élève arrive ». Toutes ses séances le suivent.${parts.length>1?' Le QR défile ('+parts.length+' morceaux) : laisse la tablette viser jusqu’au bout.':''}</p>
    <div class="qr" id="rqr"></div><p class="center small" id="rqn"></p>
@@ -237,7 +237,7 @@ function accueillir(o){
   if(!r){if(G.runners.length>=3)throw new Error('Le groupe est déjà complet (3 élèves).');
     r={id:uid(),full:o.e,prenom:prenomDe(o.e),nom:nomDe(o.e),sexe:o.x||'',vmaManuelle:o.vm||'',seances:{},imp:{}};G.runners.push(r)}
   r.imp=r.imp||{};Object.entries(o.se||{}).forEach(([sid,d])=>{if(!hasData(r.seances[sid])){r.seances[sid]=d;r.imp[sid]=1;n++}});
-  if(!r.vmaManuelle&&o.vm)r.vmaManuelle=o.vm;if(!G.classe&&o.c)G.classe=o.c;
+  if(!r.vmaManuelle&&o.vm)r.vmaManuelle=o.vm;if(o.pc)r.pc=o.pc;if(!G.classe&&o.c)G.classe=o.c;
   V.ri=G.runners.indexOf(r);save();render();
   return r.prenom+' : '+n+' séance'+(n>1?'s':'')+' récupérée'+(n>1?'s':'')+'.';
 }
@@ -309,6 +309,8 @@ function vGroupe(){
    ${n3?'<p class="muted small">Trinôme exceptionnel (élève seul ou partenaire blessé) : A coache B, B coache C, C coache A.</p>':'<p class="small"><button class="lnk" data-act="trois">+ Ajouter un 3e élève (exceptionnel : élève seul ou partenaire blessé)</button></p>'}
    <p class="muted small">${b.cy==='T'?'Vous courez et coachez à tour de rôle.':'Votre binôme est fixé à la S3 : l’un court, l’autre coache, puis vous changez.'}</p>
    <div class="row wrap"><button class="btn pri big" data-act="gvalider">Enregistrer le groupe</button>${C?'':'<button class="btn" data-act="qrclasse">Scanner le QR de la classe</button>'}</div></section>
+  ${b.runners.length?`<section class="card"><h3>🚶 Parcours marche</h3><p class="small muted">Pour un élève asthmatique ou avec un avis médical qui le demande (certificat d’inaptitude partielle) : il marche au lieu de courir, avec ses propres séances et l’épreuve de marche (${b.cy==='T'?'2 × 1000 m + 3’':'1000 m + 3’'}). Son camarade continue à courir et le coache. À choisir avec le professeur.</p>
+    <div class="row wrap">${b.runners.map((r,i)=>`<button class="chip ${isM(r)?'on':''}" data-pc="${i}">${esc(r.prenom)} : ${isM(r)?'marche ✓':'course'}</button>`).join('')}</div></section>`:''}
   ${b.runners.length?`<section class="card"><h3>Un élève change de groupe</h3><p class="small muted">Toutes ses séances le suivent sur l’autre tablette.</p>
     <div class="row wrap">${b.runners.map((r,i)=>`<button class="btn sm" data-act="tpartir" data-v="${i}">${esc(r.prenom)} part</button>`).join('')}</div>
     ${b.runners.length<3?'<p class="small"><b>Un élève arrive, ou le professeur vous donne un QR de reprise :</b></p><button class="btn sm pri" data-act="tarrive">Scanner le QR de l’élève</button>':'<p class="small muted">Le groupe est complet (3) : pour accueillir un élève, retirez d’abord quelqu’un. Le QR de reprise du professeur marche quand même pour un élève du groupe.</p><button class="btn sm" data-act="tarrive">Scanner un QR de reprise</button>'}</section>`:''}
@@ -377,6 +379,7 @@ document.addEventListener('click',async e=>{
   if(ds.tog&&V.tab==='seance'){const d=curD();const x=d[ds.tog]=d[ds.tog]||[];const i=x.indexOf(ds.v);if(i>=0)x.splice(i,1);else x.push(ds.v);saveS();return keepScroll(render)}
   if(ds.sugg!==undefined&&V.tab==='seance'){const d=curD();const c=getPath(d,'bl.con')||'';if(c.includes(ds.sugg))setPath(d,'bl.con',c.replace(ds.sugg,'').replace(/^\s*[;·]\s*|\s*[;·]\s*$/g,'').replace(/\s*;\s*;\s*/,' ; '));else setPath(d,'bl.con',(c?c.trim()+' ; ':'')+ds.sugg);saveS();return keepScroll(render)}
   if(ds.cur!==undefined){V.cur=+ds.cur;render();const st=$('.steps');if(st)window.scrollTo(0,Math.max(0,st.getBoundingClientRect().top+window.scrollY-70));return}
+  if(ds.pc!==undefined){const r=G.runners[+ds.pc];if(r){r.pc=r.pc==='m'?'':'m';V.cur=0;save();render()}return}
   if(ds.ad!==undefined&&V.tab==='seance'){const r=G.runners[+ds.ad],d=sd(r,V.sid);if(d.ad)delete d.ad;else d.ad='1';saveS();return keepScroll(render)}
   if(ds.live){const [k,key]=ds.live.split('|');return liveOpen(k,key)}
   if(ds.lv)return liveAct(ds.lv);
@@ -470,7 +473,7 @@ document.addEventListener('change',async e=>{const el=e.target;
 /* balayage gauche / droite pour changer d'étape (mode une étape à la fois) */
 let SW=null;document.addEventListener('touchstart',e=>{if(!G||V.tab!=='seance'||!oneMode()||e.touches.length!==1||e.target.closest('.tw,input,textarea,.stp,.reps,#modal,.strip'))return SW=null;SW={x:e.touches[0].clientX,y:e.touches[0].clientY}},{passive:true});
 document.addEventListener('touchend',e=>{if(!SW)return;const t=e.changedTouches[0],dx=t.clientX-SW.x,dy=t.clientY-SW.y;SW=null;if(Math.abs(dx)<80||Math.abs(dy)>50)return;
-  const n=stepList(SBY[V.sid]).length;const c=Math.max(0,Math.min(n-1,(V.cur||0)+(dx<0?1:-1)));if(c!==V.cur){V.cur=c;keepScroll(render)}},{passive:true});
+  const n=stepList(sessFor(G.runners[V.ri||0],V.sid)).length;const c=Math.max(0,Math.min(n-1,(V.cur||0)+(dx<0?1:-1)));if(c!==V.cur){V.cur=c;keepScroll(render)}},{passive:true});
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal'&&!(LIVE&&LIVE.t0&&LIVE.stage!=='done')&&!CODE_CB)closeModal()});
 /* ---------- hors ligne et mises à jour ---------- */
 function showUpd(){const u=$('#upd');if(!u)return;u.innerHTML=`Nouvelle version de l’appli installée. <button class="btn sm" data-act="reload">Recharger</button>`;u.classList.add('on')}

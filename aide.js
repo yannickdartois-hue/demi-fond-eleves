@@ -1,6 +1,11 @@
 /* aide.js — mode d'emploi de l'appli élève demi-fond (lu par eps-aide.js) */
 window.EPS_AIDE={appli:'Demi-fond · Élève',bouton:false,publics:[
 {id:'eleve',titre:'Élève',chapitres:[
+{t:'🚶 Parcours marche',html:`<ul>
+<li>Si ton professeur te l’a proposé (asthme, avis médical) : onglet Groupe → touche ton nom dans <b>Parcours marche</b>. Tes séances deviennent des séances de marche, ton camarade continue à courir.</li>
+<li>Avant chaque séance : traitement 15 min avant si ton médecin l’a prescrit, inhalateur <b>sur toi</b>. Tu siffles, tu tousses, ta poitrine serre : tu t’arrêtes et tu préviens le professeur.</li>
+<li>Règle de marche : un pied toujours au sol.</li>
+</ul>`},
 {t:'🔑 Code du cours',html:`<ul>
 <li>Au début du cours, le professeur écrit un <b>code à 4 chiffres</b>. Touche <span class="bouton">🔑 Code du cours</span> et tape-le : la séance du jour s’ouvre pendant 2 heures.</li>
 <li>Sans code, tu peux tout consulter, mais rien saisir : la saisie se fait en cours.</li>

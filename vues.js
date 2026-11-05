@@ -186,7 +186,8 @@ function sessView(){
    <label>Ce qui m’empêche de courir ${txt('mot',d)}</label><p class="small"><b>✎ Mon rôle aujourd’hui</b></p>${segv('bl.role',d,[['coach','coach'],['juge','juge-chrono']])}
    <label>✎ Ce que j’ai observé / ce que j’ai bien fait dans mon rôle ${txt('bl.nx',d)}</label></section>`+qrBtn;
   const blocs=s.blocks.map(bk).filter(B=>phaseOf(B)===ph);
-  const calcAvant=HIDE_FIRST.includes(s.id)&&!d.vu&&vma;          /* exercice : calculer ses objectifs avant de courir */
+  /* S2, S3, T3, T4 : on calcule ses objectifs avant de courir ; la carte reste EN HAUT, avant et après « Vérifier mes calculs » (elle descendait en bas, sous les blocs). */
+  const calcAvant=HIDE_FIRST.includes(s.id)&&vma;
   if(ph==='fin')return head+phases+`<section class="card thin"><p class="small"><b>Après les étirements, 5 minutes :</b> chacun remplit son bilan, puis le binôme envoie la séance.</p></section>
   ${stepsBar(s,d)}${blocs.map(B=>stepWrap(withHelp(blockView(B,s,run,d,vma),B[0],B,s),B,s,d)).join('')}
   ${stepWrap(withHelp(bilanView(s,run,d,t,n,vma),'bilan',[],s),['bilan'],s,d)}`+qrBtn;

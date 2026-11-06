@@ -62,6 +62,13 @@ const bk=b=>Array.isArray(b)?b:[b];
 const ST_TXT={abs:'absent',bl:'blessé / dispensé'};
 const WHY_TXT={abs:'coach absent',bl:'coach blessé ou dispensé',autre:'autre raison'};
 const DEG_TXT={1:'¼ · élève isolé',2:'⅓ · élève suiveur',3:'⅔ · élève acteur',4:'¾ · moteur / leader'};
+/* Foulée vue par le coach (d'après la fiche coach/juge AFL3 de l'équipe EPS) : critère observable, conseil si « à revoir » */
+const FOULEE=[['Regard loin devant, tête droite','Regarde loin devant, à 20 m, pas tes pieds.'],
+ ['Buste presque droit, gainé','Grandis-toi : buste droit, bassin sous toi, sans te pencher.'],
+ ['Bras à 90°, ils balancent d’avant en arrière','Coudes à 90°, les bras balancent d’avant en arrière, pas devant toi.'],
+ ['Pied posé sous le corps, sans bruit','Pose le pied sous toi, sans bruit : ta foulée doit être légère.'],
+ ['Respiration régulière','Cale ta respiration sur tes pas : par exemple 2 pas pour inspirer, 2 pas pour expirer.'],
+ ['Relâché : épaules basses, mains détendues','Relâche les épaules et les mains : la crispation te coupe le souffle.']];
 const RPE_TXT=['0 · repos','1 · très, très facile','2 · facile','3 · modéré : je parle en phrases','4 · un peu dur','5 · dur : je parle par mots','6 · dur +','7 · très dur','8 · très dur +','9 · presque maximal','10 · maximal : je ne peux plus parler'];
 /* Échauffement (fiche GAREEPS du lycée) : cardio avec les 3 signes, articulaire dans un ordre fixe,
    étirements actifs-dynamiques (C. Geoffroy), renforcement, gammes au choix, passage à l'allure du jour. */

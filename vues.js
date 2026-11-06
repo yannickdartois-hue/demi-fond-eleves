@@ -87,7 +87,7 @@ const HELP={
  mine:()=>['Construis ta séance contre ton point faible de T7. Exemples :','· <b>départ trop rapide</b> → 3 × 250 m à l’allure du C1, passage annoncé, 3’ de récup ;','· <b>chute sur le 2e 500</b> → 4 × 300 m à 110 %, récup 2’ ;','· <b>1’30 hors zone</b> → 3 × 45" à l’allure du projet (la moitié du projet), récup 1’30.','Donne distance ou durée, % de VMA, récupération et répétitions. La 🧮 calcule les temps.'],
  real8:()=>['Écris le temps prévu de chaque répétition (🧮 calculatrice) puis le temps réalisé. <b>Tenu</b> à 2 s près.'],
  pfin:()=>['Fixe tes projets pour l’épreuve : 100 m visé (prise d’allure 3 × 100 m), temps de C1 et C2, passage au 250 m, distance du 1’30. Pars de tes chiffres de T7.'],
- bilan:(b,s)=>['<b>Le coach a vu</b> : ton coach coche ce que tu as bien fait, puis écrit une réussite et un conseil. Des idées de conseils apparaissent selon tes résultats : touche-les pour les ajouter.','<b>Pronostic du coach</b> : avant le départ, le coach écrit ce qu’il pense que tu vas réaliser. Un bon coach se trompe de moins de 3 %.','<b>Le conseil m’a aidé</b> : c’est toi, le coureur, qui juges ton coach.','<b>Effort ressenti (0 à 10)</b> : 3 = je parle en phrases, 5 = par mots, 10 = je ne peux plus parler. <b>Charge</b> = effort × durée (en unités arbitraires, UA) : elle sert à doser l’entraînement.','<b>Projets tenus</b> : calculés tout seuls. Un projet trop prudent (moins de 95 % de ta dernière distance ou de ta VMA) ne compte pas.','<b>La prochaine fois</b> : une seule chose précise que tu changes.']
+ bilan:(b,s)=>['<b>Le coach a vu</b> : ton coach coche ce que tu as bien fait, puis écrit une réussite et un conseil. Des idées de conseils apparaissent selon tes résultats : touche-les pour les ajouter.','<b>Ta foulée vue par le coach</b> (à partir de la S3) : il te regarde courir un tour et coche ✓ ou « à revoir » sur 6 points (regard, buste, bras, pied, respiration, relâchement). Chaque « à revoir » propose un conseil.','<b>Pronostic du coach</b> : avant le départ, le coach écrit ce qu’il pense que tu vas réaliser. Un bon coach se trompe de moins de 3 %.','<b>Le conseil m’a aidé</b> : c’est toi, le coureur, qui juges ton coach.','<b>Effort ressenti (0 à 10)</b> : 3 = je parle en phrases, 5 = par mots, 10 = je ne peux plus parler. <b>Charge</b> = effort × durée (en unités arbitraires, UA) : elle sert à doser l’entraînement.','<b>Projets tenus</b> : calculés tout seuls. Un projet trop prudent (moins de 95 % de ta dernière distance ou de ta VMA) ne compte pas.','<b>La prochaine fois</b> : une seule chose précise que tu changes.']
 };
 function helpBox(key,b,s){const f=HELP[key];if(!f)return '';const L=f(b,s);
   return `<details class="help"><summary>ⓘ consigne</summary><div>${L.map(x=>'<p>'+x+'</p>').join('')}</div></details>`}
@@ -455,14 +455,15 @@ function suggest(s,run,d,v){const L=[];
 /* Seconde : les notions arrivent séance après séance (Terminale : tout, dès T1).
    S1 le coach a vu, réussite, conseil, rôle · S2 + effort ressenti, charge, « la prochaine fois »
    S3 + idées de conseils, « le conseil m'a aidé » (et le projet, avec la S3) · S4 + pronostic du coach, FC */
-const NOTION={rpe:2,nx:2,sugg:3,aide:3,prono:4,fc:4};
+const NOTION={rpe:2,nx:2,sugg:3,aide:3,ob:3,prono:4,fc:4};
 const nivS=s=>s.id[0]==='t'?99:sessOf('S').findIndex(x=>x.id===s.id)+1;
 const voit=(f,s)=>nivS(s)>=NOTION[f];
 const neuf=(f,s)=>nivS(s)===NOTION[f]?' <span class="tag neuf">nouveau</span>':'';
 function bilanView(s,run,d,t,n,v){
-  const cr=getPath(d,'bl.cr')||[];const sg=suggest(s,run,d,v);const con=getPath(d,'bl.con')||'';
+  const cr=getPath(d,'bl.cr')||[];const ob=getPath(d,'bl.ob')||{};const sg=suggest(s,run,d,v).concat(voit('ob',s)?FOULEE.filter((f,i)=>String(ob[i])==='0').map(f=>f[1]):[]).slice(0,6);const con=getPath(d,'bl.con')||'';
   return `<section class="card bilan"><h3>Bilan</h3>
    <p class="small"><b>⏱ Le coach a vu</b></p><div class="checks">${s.crit.map((c,i)=>`<button class="chk ${cr[i]?'on':''}" data-set="bl.cr.${i}" data-v="${cr[i]?'':'1'}">${cr[i]?'☑':'☐'} ${esc(c)}</button>`).join('')}</div>
+   ${voit('ob',s)?`<details class="help"${Object.keys(ob).length?' open':''}><summary>⏱ Ta foulée vue par le coach${neuf('ob',s)} <span class="muted">(regarde-le courir 1 tour : ✓ ou à revoir)</span></summary><div class="obs">${FOULEE.map((f,i)=>`<div class="row wrap"><span class="f1 small">${esc(f[0])}</span>${segv('bl.ob.'+i,d,[['1','✓'],['0','à revoir']])}</div>`).join('')}</div></details>`:''}
    <div class="row wrap"><label class="f1">⏱ Ta réussite ${txt('bl.reu',d)}</label><label class="f1">⏱ Ton conseil ${txt('bl.con',d)}</label></div>
    ${sg.length&&voit('sugg',s)?`<p class="small"><b>💡 Idées de conseils</b>${neuf('sugg',s)} <span class="muted">(d’après les résultats · touche pour ajouter)</span></p><div class="sugg">${sg.map(x=>`<button class="chip sg ${con.includes(x)?'on':''}" data-sugg="${esc(x)}">＋ ${esc(x)}</button>`).join('')}</div>`:''}
    ${voit('aide',s)?`<p class="small"><b>✎ Le conseil de mon coach m’a aidé</b>${neuf('aide',s)}</p>${segv('bl.aide',d,[['1','oui'],['0','non']])}`:''}

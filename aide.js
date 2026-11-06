@@ -1,6 +1,12 @@
 /* aide.js — mode d'emploi de l'appli élève demi-fond (lu par eps-aide.js) */
 window.EPS_AIDE={appli:'Demi-fond · Élève',bouton:false,publics:[
 {id:'eleve',titre:'Élève',chapitres:[
+{t:'Échauffement, vitesse sur 3’, distance',html:`<ul>
+<li><b>Échauffement</b> (chaque séance) : cardio jusqu’aux 3 signes, articulaire de bas en haut, 4 étirements actifs-dynamiques, 3 exercices de renforcement, 4 gammes au choix dans le catalogue illustré, puis accélérations et passage à l’allure du jour. Touche une image pour la cocher.</li>
+<li><b>Seconde</b> : le test de 3’ à fond (S2) donne <b>ta vitesse sur 3’</b> (distance ÷ 50), qui règle tes cibles d’épreuve, et <b>ta VMA estimée</b> (÷ 58), qui règle tes récupérations et certaines séries.</li>
+<li>Les séries courtes se font <b>en alternance</b> dans le binôme : la course de l’un est la récupération de l’autre.</li>
+<li>📏 La <b>distance de la séance</b> s’affiche sous ta vitesse : échauffement compris.</li>
+</ul>`},
 {t:'🚶 Parcours marche',html:`<ul>
 <li>Si ton professeur te l’a proposé (asthme, avis médical) : onglet Groupe → touche ton nom dans <b>Parcours marche</b>. Tes séances deviennent des séances de marche, ton camarade continue à courir.</li>
 <li>Avant chaque séance : traitement 15 min avant si ton médecin l’a prescrit, inhalateur <b>sur toi</b>. Tu siffles, tu tousses, ta poitrine serre : tu t’arrêtes et tu préviens le professeur.</li>

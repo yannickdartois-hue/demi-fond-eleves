@@ -182,7 +182,7 @@ function sessView(){
   const qrBtn='<button class="btn pri big full" data-act="finseance">Envoyer la séance au prof</button>';
   const phases=`<div class="seg big phase"><button class="chip ${ph==='piste'?'on':''}" data-ph="piste">Sur la piste</button><button class="chip ${ph==='fin'?'on':''}" data-ph="fin">Fin de séance · 5 min</button></div>`;
   if(d.st==='abs')return head+`<section class="card"><h3>${esc(run.prenom)} est absent(e) à cette séance</h3><p class="muted">Rien à remplir. La séance ne compte pas dans ses projets tenus. Le QR de fin de séance le signale au prof.</p></section>`+qrBtn;
-  if(d.st==='bl')return head+`<section class="card"><h3>${esc(run.prenom)} ne court pas aujourd’hui</h3><p class="muted">Blessé ou dispensé : je tiens un rôle et je remplis mon bilan de rôle. La séance ne compte pas dans mes projets tenus.</p>
+  if(d.st==='bl')return head+`<section class="card"><h3>${esc(run.prenom)} ne court pas aujourd’hui</h3>${AVT('blesse','Tu ne cours pas, mais tu as un rôle : choisis-le ci-dessous.')}<p class="muted">Blessé ou dispensé : je tiens un rôle et je remplis mon bilan de rôle. La séance ne compte pas dans mes projets tenus.</p>
    <label>Ce qui m’empêche de courir ${txt('mot',d)}</label><p class="small"><b>✎ Mon rôle aujourd’hui</b></p>${segv('bl.role',d,[['coach','coach'],['juge','juge-chrono']])}
    <label>✎ Ce que j’ai observé / ce que j’ai bien fait dans mon rôle ${txt('bl.nx',d)}</label></section>`+qrBtn;
   const blocs=s.blocks.map(bk).filter(B=>phaseOf(B)===ph);

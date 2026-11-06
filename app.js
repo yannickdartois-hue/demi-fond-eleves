@@ -5,6 +5,8 @@
    ne peut ni l'ouvrir ni le lire. Les données restent sur la tablette ; elles partent
    seulement quand le groupe les envoie au professeur (QR code ou fichier déposé sur le Nuage).
    ===================================================================== */
+const AVT=(n,b,c)=>window.EPSAvatar?EPSAvatar(n,b,c):'',AVM=n=>window.EPSAvatar?EPSAvatar.mini(n):'';
+
 'use strict';
 const APP_VERSION='v2 · 23/10/2026';
 const CLE='dfe-v1';
@@ -275,7 +277,7 @@ function render(){
   $('#onglets').innerHTML=O.map(o=>`<button data-tab="${o[0]}" class="${V.tab===o[0]?'ici':''}${o[0]==='envoi'&&ne.length?' alerte':''}">${TI[o[0]]}<b>${o[1]}</b></button>`).join('');
   $('#onglets').hidden=!b.runners.length;
   const views={seance:sessView,moi:()=>{V.v='prog';const a=progView();V.v='cibles';return a+ciblesView()+conseilsView()},chrono:chronoView,envoi:vEnvoi,groupe:vGroupe};
-  const rappel=ne.length&&!['envoi','groupe','seance'].includes(V.tab)&&!(ne.length===1&&ne[0].id===V.sid&&V.tab==='seance')?`<button class="nonenvoye" data-tab="envoi">⚠ ${ne.map(s=>s.n).join(', ')} pas encore envoyée${ne.length>1?'s':''} au professeur — touche ici pour envoyer</button>`:'';
+  const rappel=ne.length&&!['envoi','groupe','seance'].includes(V.tab)&&!(ne.length===1&&ne[0].id===V.sid&&V.tab==='seance')?`<button class="nonenvoye eps-av-ligne" data-tab="envoi">${AVM('envoyer')}<span>⚠ ${ne.map(s=>s.n).join(', ')} pas encore envoyée${ne.length>1?'s':''} au professeur — touche ici pour envoyer</span></button>`:'';
   $('#main').innerHTML=icons((DEMO?bandeauDemo():'')+rappel+(views[V.tab]||sessView)());
   document.documentElement.style.setProperty('--hh',$('header').offsetHeight+'px');
 }
@@ -329,7 +331,7 @@ function vEnvoi(){
   const lignes=b.runners.map((r,k)=>{const ok=hasData(r.seances&&r.seances[sid])&&!(r.imp&&r.imp[sid]);
     return `<li class="${ok?'':'manque'}"><span class="lettre">${LET[k]}</span><span><b>${esc(r.prenom)} ${esc(r.nom)}</b><small>${ok?esc(resumeTxt(r,sid)):'rien de saisi'}</small></span>${ok?'<em>✓</em>':''}</li>`}).join('');
   const F=fichiers([sid]);const autres=nonEnvoyees().filter(x=>x.id!==sid);
-  return `<section class="card"><h2>Fin de séance ${s.n}</h2><p class="muted small">${esc(s.t)}</p><ul class="envoi">${lignes}</ul>
+  return `<section class="card"><h2>Fin de séance ${s.n}</h2><p class="muted small">${esc(s.t)}</p>${F.length&&sessState(b,sid)==='sent'?AVT('bravo','Séance envoyée. Bravo, à la prochaine !'):''}<ul class="envoi">${lignes}</ul>
    ${b.runners.some(r=>!hasData(r.seances&&r.seances[sid]))?'<p class="warn small">Chaque élève remplit sa séance (son prénom en haut de l’écran Séance). Un absent ? Marque-le « absent » : le prof le saura.</p>':''}
    <div class="gros"><button class="btn pri big" data-act="enligne" ${F.length?'':'disabled'}>Envoyer la séance en ligne</button>${ev.fichier?`<p class="ok small">✓ envoyée à ${heure(ev.fichier)}</p>`:''}
    <button class="btn big" data-act="qr" ${F.length?'':'disabled'}>Montrer les QR codes au prof</button>${ev.qr?`<p class="ok small">✓ QR montrés à ${heure(ev.qr)}</p>`:''}

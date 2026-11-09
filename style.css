@@ -352,3 +352,6 @@ header button.bseance .pt{position:absolute;right:-4px;top:-4px;width:14px;heigh
 .wcard.on{border-color:#16a34a;background:#f0fdf4}
 .wcard.on b::before{content:'✓ ';color:#16a34a}
 .wimg{width:100%;aspect-ratio:3/2;object-fit:contain;background:#fff;border-radius:8px}
+
+/* Logo de l’en-tête = icône de l’écran d’accueil (même image que l’appli installée) */
+header img.logo{border-radius:10px;object-fit:cover;background:#fff}

@@ -44,7 +44,7 @@ window.EPS_AIDE={appli:'Demi-fond · Élève',bouton:false,publics:[
 <li><b>Un élève change de groupe</b> : Groupe → « … part » affiche son QR ; le nouveau groupe le scanne (« Scanner le QR de l’élève »). Toutes ses séances le suivent.</li>
 <li><b>Changer de tablette</b> : Groupe → « Enregistrer le carnet du groupe » (fichier chiffré), puis « Reprendre un carnet » sur l’autre tablette et votre code secret habituel.</li>
 <li><b>Code oublié</b> : touche « Code oublié ? », montre le QR au professeur, scanne sa réponse et choisis un nouveau code.</li>
-<li>Le carnet se ferme seul après 20 min sans toucher l’écran, ou si la tablette reste en veille. Touche <span class="bouton">Fermer</span> en partant.</li>
+<li>Le carnet se ferme seul : sur une tablette partagée (plusieurs carnets), après 20 min sans toucher l’écran ou 2 min de veille ; sur un téléphone avec un seul carnet, après 2 h (la durée du cours). Touche <span class="bouton">Fermer</span> en partant.</li>
 </ul>`},
 {t:'Chrono, lecture facilitée',html:`<ul><li>Onglet <b>Chrono</b> : un chrono avec bips et voix pour le coach (36"/36", 3’, 1’30…).</li>
 <li><b>Lecture facilitée</b> (case en haut de ce mode d’emploi) : la même police partout, titres compris, avec des lettres et des lignes plus espacées, utile en cas de dyslexie. Le choix vaut pour toutes les applis EPS de la tablette.</li></ul>`}]},

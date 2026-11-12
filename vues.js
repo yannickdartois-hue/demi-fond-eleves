@@ -260,9 +260,9 @@ function stepWrap(html,B,s,d){if(RESULT.includes(B[0]))return html;const L=stepL
   return h}
 function coachModal(){
   const b=curBin(),ri=V.ri||0,run=b.runners[ri],d=sd(run,V.sid);const cx=d.cx||{};
-  const mine=new Set(b.runners.map(r=>norm(r.full)));const known=((b.cfg&&b.cfg.eleves)||[]).filter(x=>!mine.has(norm(x))).map(x=>prenomDe(x)+' '+nomDe(x).charAt(0)+'.');
+  const mine=new Set(b.runners.map(r=>norm(r.full)));const known=((b.cfg&&b.cfg.eleves)||[]).filter(x=>!mine.has(norm(x))).map(x=>nomCourt(x,(b.cfg&&b.cfg.eleves)||[]).replace(/^([^ ]+)$/,(m)=>m+' '+nomDe(x).charAt(0)+'.'));
   modal(`<h2>Coach remplaçant pour ${esc(run.prenom)}</h2><p class="muted small">À utiliser seulement si ton coach habituel est absent, blessé ou dispensé. Le prof le verra dans ton envoi.</p>
-   <label>Prénom et initiale du coach<input class="in" id="cxn" list="cxl" value="${esc(cx.n||'')}" autocomplete="off" style="max-width:none"></label>
+   <label>Prénom et nom du coach (la liste distingue les homonymes)<input class="in" id="cxn" list="cxl" value="${esc(cx.n||'')}" autocomplete="off" style="max-width:none"></label>
    <datalist id="cxl">${known.map(k=>`<option value="${esc(k)}">`).join('')}</datalist>
    <p class="small"><b>Pourquoi ?</b></p><div class="seg" id="cxw">${[['abs','coach absent'],['bl','coach blessé ou dispensé'],['autre','autre raison']].map(o=>`<button class="chip ${(cx.why||'abs')===o[0]?'on':''}" data-cxw="${o[0]}">${o[1]}</button>`).join('')}</div>
    <div class="row wrap"><button class="btn pri" data-act="cxok">Valider</button>${cx.n?'<button class="btn ghost" data-act="cxdel">Revenir au coach habituel</button>':''}<button class="btn" data-act="closem">Annuler</button></div>`);

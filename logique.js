@@ -145,6 +145,10 @@ function chargeOf(d){const bl=d&&d.bl||{};const r=num(bl.rpe);if(r==null)return 
 /* ---- noms ---- */
 const prenomDe=n=>{const w=String(n||'').trim().split(/\s+/);const pre=w.filter(x=>!(x===x.toUpperCase()&&/[A-ZÀ-Ý]/.test(x)));return (pre.length?pre:w).join(' ')};
 const nomDe=n=>{const w=String(n||'').trim().split(/\s+/);const up=w.filter(x=>x===x.toUpperCase()&&/[A-ZÀ-Ý]/.test(x));return up.length?up.join(' '):(w.length>1?w[w.length-1]:'')};
+/* Nom court sans ambiguïté dans une liste (homonymes) : « Alexandre », sinon « Alexandre D. », sinon « Alexandre DUPONT » */
+function nomCourt(full,liste){const p=prenomDe(full),n=nomDe(full),L=(liste||[]).filter(x=>norm(x)!==norm(full));const np=x=>norm(prenomDe(x));
+  if(!L.some(x=>np(x)===norm(p)))return p;const ini=n.charAt(0);if(ini&&!L.some(x=>np(x)===norm(p)&&nomDe(x).charAt(0)===ini))return p+' '+ini+'.';return p+(n?' '+n:'')}
+const nomsGroupe=(rs,cl)=>{const L=(cl&&cl.eleves)||[];return rs.map(r=>r.full&&L.length?nomCourt(r.full,L):r.prenom)};
 function slug(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'').slice(0,24)}
 function nomFichier(classe,eleve,sid,suffixe){const nom=nomDe(eleve),pre=prenomDe(eleve);
   return (slug(classe)||'Classe')+'_'+(slug(nom)+(pre?'_'+slug(pre):'')||'Eleve') /* prénom complet : deux élèves de même nom ne doivent pas donner le même fichier */+'_'+String(sid).toUpperCase()+(suffixe?'_'+suffixe:'')+'.json'}

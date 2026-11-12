@@ -70,7 +70,7 @@ async function enregistrer(){
   const g=ROOT.groupes[ACTIF]||(ROOT.groupes[ACTIF]={});
   const iv=crypto.getRandomValues(new Uint8Array(12));
   const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},CLEF,new TextEncoder().encode(JSON.stringify(G)));
-  Object.assign(g,{classe:G.classe,cy:G.cy,noms:G.runners.map(r=>r.prenom),iv:b64(iv),data:b64(ct),vu:Date.now(),nonEnv:nonEnvoyees().map(s=>s.n)});delete g.clair;
+  Object.assign(g,{classe:G.classe,cy:G.cy,noms:nomsGroupe(G.runners,G.cfg),iv:b64(iv),data:b64(ct),vu:Date.now(),nonEnv:nonEnvoyees().map(s=>s.n)});delete g.clair;
   const k=G.cfg&&G.cfg.k;if(k&&g.pkk!==k){try{g.pk=await pourProf(CLEF,k);g.pkk=k}catch(e){}}
   ecrireRoot();
 }
@@ -254,7 +254,7 @@ function migrer(){const o=ancienDB();if(!o)return;let n=0;
   o.binomes.forEach(b=>{if(!b.runners||!b.runners.length)return;const id=uid();
     const g=Object.assign(vide(b.classe,b.cy||'S'),{id,sent:b.sent||{},mod:b.mod||{},runners:b.runners.map(r=>{const full=((r.prenom||'')+' '+String(r.nom||'').toUpperCase()).trim();
       return {id:uid(),full,prenom:r.prenom||prenomDe(full),nom:String(r.nom||'').toUpperCase(),sexe:r.sexe||'',vmaManuelle:r.vmaManuelle||'',seances:r.seances||{}}})});
-    ROOT.groupes[id]={classe:g.classe,cy:g.cy,noms:g.runners.map(r=>r.prenom),clair:g};n++});
+    ROOT.groupes[id]={classe:g.classe,cy:g.cy,noms:nomsGroupe(g.runners,g.cfg),clair:g};n++});
   ROOT.migre=Date.now();ecrireRoot();render();toast(n+' binôme'+(n>1?'s':'')+' repris : touchez le vôtre et choisissez un code.')}
 
 /* ---------- Pictos des onglets ---------- */
@@ -484,7 +484,7 @@ document.addEventListener('change',async e=>{const el=e.target;
       if(o.carnetDFc&&o.data&&o.iv&&o.sel){const {carnetDFc:_m,id:_i,...g}=o;const id=_i||uid(),x=ROOT.groupes[id];el.value='';if(x&&x.data&&(x.vu||0)>=(g.vu||0)){toast('Cette tablette a déjà ce carnet, aussi récent ou plus récent : rien n’a été remplacé.');return}await verrouiller();delete g.essais;ROOT.groupes[id]=g;ecrireRoot();render();toast('Carnet repris : touchez-le et tapez votre code secret habituel.');return}
       if(!o.carnetDF||!o.runners)throw 0;delete o.carnetDF;
       if(o.cfg&&o.cfg.classe)ROOT.classes[o.cfg.classe]=o.cfg;await verrouiller();const id=uid();o.id=id;
-      ROOT.groupes[id]={classe:o.classe||'',cy:o.cy||'S',noms:(o.runners||[]).map(r=>r.prenom),clair:o};ecrireRoot();render();toast('Carnet repris : touchez-le et choisissez un code.')}
+      ROOT.groupes[id]={classe:o.classe||'',cy:o.cy||'S',noms:nomsGroupe(o.runners||[],o.cfg),clair:o};ecrireRoot();render();toast('Carnet repris : touchez-le et choisissez un code.')}
     catch(x){toast('Ce fichier n’est pas un carnet de groupe.')}
     el.value='';return}
   if(!G)return;

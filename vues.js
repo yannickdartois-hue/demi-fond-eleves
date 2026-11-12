@@ -333,12 +333,16 @@ function blockView(b,s,run,d,vma){
       <button type="button" class="wpart-min" data-wtim="${min*60}" aria-label="Minuteur ${min} min">⏱ ${min}′</button>
       <details class="wdet"><summary>Voir le détail</summary>${detail}</details></div>`};
     const noms=RS.map(r=>esc(r.prenom)).join(' et ');
-    const foot=RS.map((r,i)=>`<label class="small wfoot-l"><b>${esc(r.prenom)}</b> ${stp('wfoot',dA[i],{step:100,min:0,max:3000,start:800}).replace(/data-stp="wfoot"/g,`data-stp="wfoot" data-rn="${i}"`).replace(/data-p="wfoot"/,`data-p="wfoot" data-rn="${i}"`)}</label>`).join('');
+    /* footing en tours de piste (200 m) + quart de tour : « 4 tours et demi » = 900 m */
+    const foot=RS.map((r,i)=>{const m=num(dA[i].wfoot);const t=m==null?null:m/200;const ent=t==null?null:Math.floor(t+1e-6),q=t==null?null:Math.round((t-ent)*4)/4;
+      const qs=[[0,'0'],[0.25,'¼'],[0.5,'½'],[0.75,'¾']];
+      return `<div class="wfoot-l"><b>${esc(r.prenom)}</b><span class="stp"><button type="button" class="sb" data-wft="${i}" data-dl="-1" aria-label="un tour de moins">−</button><span class="in wft-n">${ent==null?'–':ent}</span><button type="button" class="sb" data-wft="${i}" data-dl="1" aria-label="un tour de plus">+</button></span><span class="small">tour${ent>1?'s':''} et</span>
+      <span class="seg wfq">${qs.map(([v,l])=>`<button type="button" class="chip sm ${q===v&&m!=null?'on':''}" data-wfq="${i}" data-v="${v}">${l}</button>`).join('')}</span><span class="small muted">${m==null?'':'= '+m+' m'}</span></div>`}).join('');
     return `<section class="card"><h3>1 · Notre échauffement ${who('R')}</h3>
     <p class="muted small">${seul?'Seul, sans aide : coche chaque partie faite.':`Commun à ${noms} : une coche vaut pour ${RS.length>2?'tous':'les deux'}. Environ 15 min. Touche une partie quand elle est faite.`}</p>
     <div class="wtimer" id="wtimer" hidden><span class="wtimer-t" id="wtt">0:00</span><button type="button" class="chip sm" data-wta="go" id="wtgo">Démarrer</button><button type="button" class="chip sm" data-wta="m">−30 s</button><button type="button" class="chip sm" data-wta="p">+30 s</button><button type="button" class="chip sm" data-wta="x" aria-label="Fermer le minuteur">✕</button></div>
     ${part('P1','Cardio',5,nS===3,`<p class="small">${nS} / 3 signes : je passe à la suite quand les 3 sont là</p>${chips(WARM_EX[0])}`,'Footing de plus en plus vite, puis talons-fesses, montées de genoux, pas chassés')}
-    <div class="wfoot"><span class="small"><b>Distance du footing (m)</b>, chacun la sienne</span>${foot}</div>
+    <div class="wfoot"><span class="small"><b>Footing : combien de tours ?</b> Chacun le sien (tour de 200 m, puis le quart de tour en plus)</span>${foot}</div>
     ${part('P2','Articulaire',2,nA===WARM_EX[1].length,`<p class="small muted">Dans cet ordre, de bas en haut.</p>${chips(WARM_EX[1])}`,'Chevilles → genoux et hanches → tronc → épaules → poignets → nuque')}
     ${part('P3','Étirements actifs-dynamiques',3,nE===4,`<p class="muted small">Chaque côté : ① j’allonge et je contracte sans bouger 4 s · ② je freine en contractant 4 s · je relâche · ③ 8 s de mouvement.</p>${seul?chips(WARM_EX[2]):`<div class="wgrid">${ETIR.map(e=>carte(e[0],e[2],e[1],['① '+e[3],'② '+e[4],'③ '+e[5]])).join('')}</div>`}`,'Mollets, ischio-jambiers, quadriceps, fléchisseurs de hanche')}
     ${part('P4','Renforcement',2,nR>=3,`<p class="small">${nR} / 3 au choix</p>${chips(WARM_EX[3])}`,'3 exercices au choix')}

@@ -398,7 +398,7 @@ document.addEventListener('click',async e=>{
     if(ds.wft!==undefined){t=Math.max(0,Math.min(20,t+ +ds.dl));if(m==null)t=Math.max(0,+ds.dl)}else{t=Math.floor(t+1e-6)+ +ds.v}
     dd.wfoot=String(Math.round(t*200));if(G.runners[i].imp)delete G.runners[i].imp[V.sid];saveS();return keepScroll(render)}
   if(ds.wtim!==undefined||ds.wta!==undefined){wTimer(ds.wtim!==undefined?{dur:+ds.wtim}:{act:ds.wta});return}
-  if(ds.sugg!==undefined&&V.tab==='seance'){const d=curD();const c=getPath(d,'bl.con')||'';if(c.includes(ds.sugg))setPath(d,'bl.con',c.replace(ds.sugg,'').replace(/^\s*[;·]\s*|\s*[;·]\s*$/g,'').replace(/\s*;\s*;\s*/,' ; '));else setPath(d,'bl.con',(c?c.trim()+' ; ':'')+ds.sugg);saveS();return keepScroll(render)}
+  if(ds.sugg!==undefined&&V.tab==='seance'){const d=curD(),F=ds.fld||'bl.con';const c=getPath(d,F)||'';if(c.includes(ds.sugg))setPath(d,F,c.replace(ds.sugg,'').replace(/^\s*[;·]\s*|\s*[;·]\s*$/g,'').replace(/\s*;\s*;\s*/,' ; '));else setPath(d,F,(c?c.trim()+' ; ':'')+ds.sugg);saveS();return keepScroll(render)}
   if(ds.tourn!==undefined&&V.tab==='seance'){V.ri=+ds.tourn;return keepScroll(render)}
   if(ds.np!==undefined&&V.tab==='seance'){const d=curD();const x=d.np=d.np||[];const i=x.indexOf(ds.np);
     if(i>=0){x.splice(i,1);if(d.npc)delete d.npc[ds.np];saveS();return keepScroll(render)}

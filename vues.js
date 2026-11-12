@@ -502,22 +502,29 @@ const NOTION={rpe:2,nx:2,sugg:3,aide:3,ob:3,prono:4,fc:4};
 const nivS=s=>s.id[0]==='t'?99:sessOf('S').findIndex(x=>x.id===s.id)+1;
 const voit=(f,s)=>nivS(s)>=NOTION[f];
 const neuf=(f,s)=>nivS(s)===NOTION[f]?' <span class="tag neuf">nouveau</span>':'';
+const puces=(f,L,d)=>{const c=getPath(d,f)||'';return `<div class="sugg">${L.map(x=>`<button class="chip sg ${c.includes(x)?'on':''}" data-sugg="${esc(x)}" data-fld="${f}">${c.includes(x)?'✓':'＋'} ${esc(x)}</button>`).join('')}</div>`};
+const autre=(f,d)=>`<details class="help"><summary class="small">✎ Écrire autre chose (facultatif)</summary><div>${txt(f,d)}</div></details>`;
 function bilanView(s,run,d,t,n,v){
   const cr=getPath(d,'bl.cr')||[];const ob=getPath(d,'bl.ob')||{};const sg=suggest(s,run,d,v).concat(voit('ob',s)?FOULEE.filter((f,i)=>String(ob[i])==='0').map(f=>f[1]):[]).slice(0,6);const con=getPath(d,'bl.con')||'';
-  return `<section class="card bilan"><h3>Bilan</h3>
+  /* Seconde : bilan à toucher (texte facultatif) */
+  const SEC=s.id[0]==='s',ok75=n&&t/n>=.75;
+  const reuL=(ok75?['J’ai tenu mes projets']:[]).concat(['J’ai été régulier','J’ai bien géré mon départ','J’ai couru sans m’arrêter','J’ai bien coaché mon binôme']),gen=['Partir moins vite','Être plus régulier','Écouter les temps de passage','Accélérer à la fin'];
+  const conL=sg.concat(gen).slice(0,6),nxL=gen.concat(['Mieux coacher mon binôme']);
+  return `<section class="card bilan"><h3>Bilan${SEC?' <span class="muted small">· 1 minute, tout se touche</span>':''}</h3>
    <p class="small"><b>⏱ Le coach a vu</b></p><div class="checks">${s.crit.map((c,i)=>`<button class="chk ${cr[i]?'on':''}" data-set="bl.cr.${i}" data-v="${cr[i]?'':'1'}">${cr[i]?'☑':'☐'} ${esc(c)}</button>`).join('')}</div>
    ${voit('ob',s)?`<details class="help"${Object.keys(ob).length?' open':''}><summary>⏱ Ta foulée vue par le coach${neuf('ob',s)} <span class="muted">(regarde-le courir 1 tour : ✓ ou à revoir)</span></summary><div class="obs">${FOULEE.map((f,i)=>`<div class="row wrap"><span class="f1 small">${esc(f[0])}</span>${segv('bl.ob.'+i,d,[['1','✓'],['0','à revoir']])}</div>`).join('')}</div></details>`:''}
-   <div class="row wrap"><label class="f1">⏱ Ta réussite ${txt('bl.reu',d)}</label><label class="f1">⏱ Ton conseil ${txt('bl.con',d)}</label></div>
-   ${sg.length&&voit('sugg',s)?`<p class="small"><b>💡 Idées de conseils</b>${neuf('sugg',s)} <span class="muted">(d’après les résultats · touche pour ajouter)</span></p><div class="sugg">${sg.map(x=>`<button class="chip sg ${con.includes(x)?'on':''}" data-sugg="${esc(x)}">＋ ${esc(x)}</button>`).join('')}</div>`:''}
+   ${SEC?`<p class="small"><b>⏱ Ta réussite</b> <span class="muted">(touche ce qui est vrai)</span></p>${puces('bl.reu',reuL,d)}${autre('bl.reu',d)}
+   <p class="small"><b>⏱ Ton conseil</b> <span class="muted">(touche le conseil à lui donner)</span></p>${puces('bl.con',conL,d)}${autre('bl.con',d)}`:`<div class="row wrap"><label class="f1">⏱ Ta réussite ${txt('bl.reu',d)}</label><label class="f1">⏱ Ton conseil ${txt('bl.con',d)}</label></div>`}
+   ${!SEC&&sg.length&&voit('sugg',s)?`<p class="small"><b>💡 Idées de conseils</b>${neuf('sugg',s)} <span class="muted">(d’après les résultats · touche pour ajouter)</span></p><div class="sugg">${sg.map(x=>`<button class="chip sg ${con.includes(x)?'on':''}" data-sugg="${esc(x)}">＋ ${esc(x)}</button>`).join('')}</div>`:''}
    ${voit('aide',s)?`<p class="small"><b>✎ Le conseil de mon coach m’a aidé</b>${neuf('aide',s)}</p>${segv('bl.aide',d,[['1','oui'],['0','non']])}`:''}
-   ${voit('rpe',s)?`<p class="small"><b>✎ Effort ressenti sur la séance</b>${neuf('rpe',s)} <span class="muted">(0 repos … 10 maximal)</span></p>
-   <div class="rpe">${[0,1,2,3,4,5,6,7,8,9,10].map(k=>`<button class="chip sm r${k} ${String(getPath(d,'bl.rpe'))===String(k)?'on':''}" data-set="bl.rpe" data-v="${k}">${k}</button>`).join('')}</div>
-   <p class="small rpel">${getPath(d,'bl.rpe')!=null&&getPath(d,'bl.rpe')!==''?RPE_TXT[+getPath(d,'bl.rpe')]:'Touche le chiffre qui correspond à ton effort.'}</p>
-   <div class="row wrap"><label>✎ Durée de pratique (min) ${stp('bl.du',d,{step:5,min:10,max:120,start:60})}</label>${out('Charge de la séance',chargeOf(d)!=null?chargeOf(d)+' UA':'–')}</div>`:''}
-   ${!voit('fc',s)?'':`<details class="help"><summary>FC (facultatif)</summary><div><label>FC en fin de série (/min), pouls 15" × 4 ${stp('bl.fc',d,{step:4,min:60,max:240,start:160,chk:CHK.fc})}</label></div></details>`}
+   ${voit('rpe',s)?`<p class="small"><b>✎ Effort ressenti sur la séance</b>${neuf('rpe',s)}${SEC?'':' <span class="muted">(0 repos … 10 maximal)</span>'}</p>
+   ${SEC?`<div class="rpe r5">${[[2,'facile'],[4,'moyen'],[6,'dur'],[8,'très dur'],[10,'à fond']].map(([k,l])=>`<button class="chip r${k} ${String(getPath(d,'bl.rpe'))===String(k)?'on':''}" data-set="bl.rpe" data-v="${k}">${l}</button>`).join('')}</div>`:`<div class="rpe">${[0,1,2,3,4,5,6,7,8,9,10].map(k=>`<button class="chip sm r${k} ${String(getPath(d,'bl.rpe'))===String(k)?'on':''}" data-set="bl.rpe" data-v="${k}">${k}</button>`).join('')}</div>`}
+   ${SEC?'':`<p class="small rpel">${getPath(d,'bl.rpe')!=null&&getPath(d,'bl.rpe')!==''?RPE_TXT[+getPath(d,'bl.rpe')]:'Touche le chiffre qui correspond à ton effort.'}</p>`}
+   ${SEC?'':`<div class="row wrap"><label>✎ Durée de pratique (min) ${stp('bl.du',d,{step:5,min:10,max:120,start:60})}</label>${out('Charge de la séance',chargeOf(d)!=null?chargeOf(d)+' UA':'–')}</div>`}`:''}
+   ${SEC||!voit('fc',s)?'':`<details class="help"><summary>FC (facultatif)</summary><div><label>FC en fin de série (/min), pouls 15" × 4 ${stp('bl.fc',d,{step:4,min:60,max:240,start:160,chk:CHK.fc})}</label></div></details>`}
    <div><p class="small"><b>✎ Mon rôle aujourd’hui</b></p>${segv('bl.role',d,[['coach','coach'],['juge','juge-chrono']])}</div>
    <div class="outs">${out('Projets tenus aujourd’hui',n?t+' / '+n:'–','hi')}</div>
-   ${voit('nx',s)?`<label>✎ La prochaine fois, je…${neuf('nx',s)} ${txt('bl.nx',d)}</label>`:''}</section>`;
+   ${voit('nx',s)?(SEC?`<p class="small"><b>✎ La prochaine fois, je…</b>${neuf('nx',s)}</p>${puces('bl.nx',nxL,d)}${autre('bl.nx',d)}`:`<label>✎ La prochaine fois, je…${neuf('nx',s)} ${txt('bl.nx',d)}</label>`):''}</section>`;
 }
 
 /* ---------- compteur et chrono en direct (coach) ---------- */

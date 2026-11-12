@@ -396,3 +396,5 @@ header img.logo{border-radius:10px;object-fit:cover;background:#fff}
 .envoi small.ok,.envoi small.bko{display:block;font-weight:800}.bko{color:var(--warn)}
 .bmanque{background:var(--attn,#fff7ed);border:2px solid var(--warn);border-radius:14px;padding:12px;margin:10px 0;display:flex;flex-direction:column;gap:8px}
 .modal .col{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.rpe.r5{grid-template-columns:repeat(5,1fr)}.rpe.r5 .chip{font-size:15px;padding:10px 0}
+@media (max-width:560px){.rpe.r5{grid-template-columns:repeat(5,1fr)}}

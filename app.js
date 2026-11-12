@@ -414,7 +414,7 @@ document.addEventListener('click',async e=>{
   if(ds.xc!==undefined){xcAct(ds.xc);return}
   if(ds.pls!==undefined){poulsLibre();return}
   if(ds.rc!==undefined){recAct(ds.rc);return}
-  if(ds.cur!==undefined&&V.tab==='seance'&&V.ph!=='fin'&&+ds.cur>(V.cur||0)){try{const s0=SBY[V.sid],L=stepList(s0),B=L[V.cur||0];if(B&&!NO_DECO.includes(B[0])&&!RESULT.includes(B[0]))recStart(180)}catch(e){}}
+  if(ds.cur!==undefined&&V.tab==='seance'&&V.ph!=='fin'&&+ds.cur>(V.cur||0)){try{const s0=SBY[V.sid],L=stepList(s0),B=L[V.cur||0];if(B){const t=recDuree(V.sid,B);if(t>0)recStart(t);else if(t==null&&!NO_DECO.includes(B[0])&&!RESULT.includes(B[0]))recStart(180)}}catch(e){}}
   if(ds.cur!==undefined){V.cur=+ds.cur;render();const st=$('.steps');if(st)window.scrollTo(0,Math.max(0,st.getBoundingClientRect().top+window.scrollY-70));return}
   if(ds.pc!==undefined){const r=G.runners[+ds.pc];if(r){r.pc=r.pc==='m'?'':'m';V.cur=0;save();render()}return}
   if(ds.ad!==undefined&&V.tab==='seance'){const r=G.runners[+ds.ad],d=sd(r,V.sid);if(d.ad)delete d.ad;else d.ad='1';saveS();return keepScroll(render)}
@@ -571,14 +571,35 @@ function xcAct(a){if(a==='go'){if(XC.run){XC.acc=xcVal();XC.run=false;clearInter
 /* ---------- récupération : bandeau vert en haut, jamais une fenêtre ; le pouls passe d'abord ---------- */
 let REC=null;
 function recReste(){return REC?Math.max(0,REC.fin-Date.now())/1000:0}
-function recStart(sec){clearInterval(REC&&REC.h);REC={fin:Date.now()+sec*1000,pouls:true,bip:false};REC.h=setInterval(recAff,250);recAff()}
+/* Récupération après chaque exercice, séance par séance (en secondes ; 0 = pas de bandeau : la suite est une
+   récupération au programme, une épreuve avec son propre temps, ou la fin). Non listé : 3 min. */
+const REC_TAB={
+ s1:{al4:240,ct:240,ann:0},
+ s2:{t3m:0,ra:120,m130:240,'ser:s':0},
+ s3:{'ser:s':300,'c3:c3':360,'p130:p':0},
+ s4:{'c3:c3':360,'p130:p':300,'ser:s':0},
+ s5:{'ser:s':300,'c3:c3':300,'c3:c3b':300,'p130:p':0},
+ s6:{'c3:c3':0,'p130:p':0}, s8:{'c3:c3':0,'p130:p':0},
+ s7:{at:300,'c3:c3':0,'p130:p':0},
+ t1:{rel5:300,'c500:r1':480,e130:0},
+ t2:{tours:300,t3624:0},
+ t3:{'ser:s':240,'ser:s2':0,ra2:120,i36m:0},
+ t4:{i112:0,ra2:120,'ser:s':0},
+ t5:{rt:300,'ser:s':360,'p130:p':0},
+ t6:{'ser:s':360,'c500:k1':0,'c500:k2':0},
+ t7:{'c500:e1':0,'c500:e2':0,'p130:p':0}, t9:{'c500:e1':0,'c500:e2':0,'p130:p':0}
+};
+const recCle=B=>B[1]!=null&&typeof B[1]==='string'&&B[0]!=='ra2'&&B[0]!=='i112'?B[0]+':'+B[1]:B[0];
+function recDuree(sid,B){if(B[0]==='entre')return 0;const T=REC_TAB[sid]||{},k=recCle(B);return k in T?T[k]:(B[0] in T?T[B[0]]:null)}
+const recConsigne=sec=>sec<=120?'Marche et prends ton pouls.':sec<=300?'Trotte lentement 2’, puis marche.':'Trotte, marche, bois. Dans la dernière minute : 2 accélérations pour repartir.';
+function recStart(sec){clearInterval(REC&&REC.h);REC={fin:Date.now()+sec*1000,pouls:true,bip:false,cons:recConsigne(sec),tot:sec};REC.h=setInterval(recAff,250);recAff()}
 function recAct(a){if(!REC)return;if(a==='x'){clearInterval(REC.h);REC=null;const b=document.getElementById('recband');if(b)b.remove();return}
   if(a==='m')REC.fin-=30000;if(a==='p')REC.fin+=30000;if(a==='pl'){REC.pouls=false;poulsLibre()}if(a==='np')REC.pouls=false;recAff()}
 function recAff(){const main=document.getElementById('main');if(!REC||!main)return;if(V.tab!=='seance'){return}
   let b=document.getElementById('recband');if(!b){b=document.createElement('div');b.id='recband';main.prepend(b)}
   const r=Math.ceil(recReste()),t=Math.floor(r/60)+':'+String(r%60).padStart(2,'0');
   if(r<=0&&!REC.bip){REC.bip=true;wBip()}
-  const html=`<div class="recband ${r<=0?'fini':''}"><span>${r<=0?'Récupération finie : on repart !':'Récupération'}</span><b>${t}</b><span class="rb"><button type="button" class="chip sm" data-rc="m">−30 s</button><button type="button" class="chip sm" data-rc="p">+30 s</button><button type="button" class="chip sm" data-rc="x" aria-label="Fermer">✕</button></span></div>
+  const html=`<div class="recband ${r<=0?'fini':''}"><span>${r<=0?'Récupération finie : on repart !':'Récupération '+Math.round(REC.tot/60*2)/2+'’'}${r>0&&REC.cons?'<small style="display:block;font-weight:600">'+REC.cons+'</small>':''}</span><b>${t}</b><span class="rb"><button type="button" class="chip sm" data-rc="m">−30 s</button><button type="button" class="chip sm" data-rc="p">+30 s</button><button type="button" class="chip sm" data-rc="x" aria-label="Fermer">✕</button></span></div>
    ${REC.pouls?`<div class="poulscard"><b>❤ Prends ton pouls maintenant !</b><span>Tout de suite après l’effort, avant qu’il redescende.</span><button type="button" class="poulsgo" data-rc="pl">❤ Touche ici pour compter 15 s</button><button type="button" class="lnk small" data-rc="np">Pas cette fois</button></div>`:''}`;
   if(b.dataset.h!==html){b.innerHTML=html;b.dataset.h=html}}
 new MutationObserver(()=>{if(REC&&V.tab==='seance'&&!document.getElementById('recband'))recAff();if(XC.acc||XC.run)xcAff()}).observe(document.getElementById('main')||document.body,{childList:true});

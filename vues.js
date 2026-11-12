@@ -173,6 +173,34 @@ function presView(b,sid){
   return `<section class="card thin pres"><div class="prow">${b.runners.map((r,i)=>{const d=sd(r,sid);const st=d.st||'';
     return `<div class="pcol"><b>${esc(r.prenom)}</b><div class="seg">${[['','présent'],['abs','absent'],['bl','blessé / dispensé']].map(o=>`<button class="chip sm ${st===o[0]?'on':''}" data-st="${i}" data-v="${o[0]}">${o[1]}</button>`).join('')}${st?'':`<button class="chip sm ${d.ad?'on':''}" data-ad="${i}">pratique adaptée</button>`}</div></div>`}).join('')}</div>${b.runners.every(r=>!((r.seances&&r.seances[sid]||{}).st))?'<button class="lnk small" data-act="presclose">Replier</button>':''}</section>`;
 }
+/* ---------- séance en direct : à tour de rôle ou ensemble, chrono, « passer » ---------- */
+const npKey=B=>B[0]+'|'+(B[1]||'');
+const ENSEMBLE=['al4','ra','ra2'];                       /* les deux coureurs courent en même temps */
+const NO_DECO=['warm','warmT','mwarm','grp','txt','pf','pfT','situe','pe','rep','mine','pfin','mpf','mpe','afl1','afl1T','ec2','vup','mnote','at'];
+const COUL=['a','b','c'];
+function roleLine(w,b,ri){const n=b.runners.map(r=>r.prenom),moi=n[ri]||'',autre=n[(ri+1)%n.length]||'ton binôme';
+  if(w==='C')return `<p class="roleline">${esc(autre)} regarde ${esc(moi)} courir et note pour ${['F'].includes((b.runners[ri]||{}).sexe)?'elle':'lui'} : ${esc(moi)} n’écrit rien pendant sa course.</p>`;
+  if(w==='CR')return `<p class="roleline">${esc(autre)} compte pendant la course, ${esc(moi)} complète juste après.</p>`;
+  return ''}
+const xchr=()=>`<div class="xchr"><b class="xchr-t">0:00,0</b><button type="button" class="chip sm" data-xc="go">Démarrer</button><button type="button" class="chip sm" data-xc="r" aria-label="Remettre à zéro">⟲</button></div>`;
+function decorate(html,B,s,d,b,ri,ens){
+  if(NO_DECO.includes(B[0])||RESULT.includes(B[0]))return html;
+  const m=html.match(/data-who="([CR]+)"/);const w=m?m[1]:'';if(!w||w==='R')return html;
+  const n=b.runners.length,np=(d.np||[]).includes(npKey(B));
+  let top='';
+  if(ens)top=`<p class="modeline"><span class="tag mode">👥 Ensemble</span> Vous courez en même temps : chacun a sa colonne.</p>`;
+  else if(n>1){const nx=(ri+1)%n,me=b.runners[ri],ot=b.runners[nx];
+    top=`<div class="tour t${COUL[ri]||'a'}"><b>🏃 C’est ${esc(me.prenom)} qui court</b><span>${esc(ot.prenom)} ${w==='C'?'le suit et note':'compte pendant la course'}</span><button type="button" class="tour-sw" data-tourn="${nx}">Au tour de ${esc(ot.prenom)} ▶</button></div><p class="modeline"><span class="tag mode">🔁 À tour de rôle</span></p>`}
+  const i=html.indexOf('</h3>');if(i<0)return html;
+  html=html.slice(0,i+5)+top+(ens?'':roleLine(w,b,ri))+xchr()+(np?'<p class="npline">⏭ Marqué <b>non réalisé</b> : rien à remplir.</p>':'')+html.slice(i+5);
+  const k=html.lastIndexOf('</section>');
+  return html.slice(0,k)+`<button type="button" class="btn np ${np?'on':''}" data-np="${esc(npKey(B))}">${np?'↩ Finalement réalisé':'⏭ Passer / non réalisé'}</button>`+html.slice(k)}
+function ensembleView(B,s,b){
+  const parts=b.runners.map((r,i)=>{const rs=sessFor(r,s.id),M=isM(r),d=sd(r,rs.id),vM=M?vmmOf(r,rs.id):vmaOf(r,rs.id),v=M?vM:(num(d.vj)||vM);
+    let h=withHelp(blockView(B,rs,r,d,v),B[0],B,rs).replace(/data-(p|stp|set|tog)="/g,`data-rn="${i}" data-$1="`);return {r,i,h}});
+  const first=parts[0].h,h3=(first.match(/<h3>[\s\S]*?<\/h3>/)||[''])[0];
+  const inner=x=>{const a=x.indexOf('</h3>');const b2=x.lastIndexOf('</section>');return x.slice(a+5,b2)};
+  return `<section class="card">${h3}<div class="ens">${parts.map(({r,i,h})=>`<div class="ens-c c${COUL[i]||'a'}"><b class="ens-n">${esc(r.prenom)}</b>${inner(h)}</div>`).join('')}</div></section>`}
 function sessView(){
   const b=curBin(),ri=V.ri||0,run=b.runners[ri],s=sessFor(run,V.sid),M=isM(run),d=sd(run,s.id),vMes=M?vmmOf(run,s.id):vmaOf(run,s.id),vma=M?vMes:(num(d.vj)||vMes);
   const [t,n]=tenus(s.id,Object.assign(ctx(run,s.id,d),{_v:vma},M?{_mar:1}:{}));const co=coachOf(b,ri,s.id);
@@ -199,7 +227,9 @@ function sessView(){
   ${M?SECU_M:''}
   ${calcAvant?obj:''}
   ${stepsBar(s,d)}
-  ${blocs.map(B=>stepWrap(withHelp(blockView(B,s,run,d,vma),B[0],B,s),B,s,d)).join('')}
+  ${blocs.map(B=>{const ens=ENSEMBLE.includes(B[0])&&b.runners.length>1;const h=ens?ensembleView(B,s,b):withHelp(blockView(B,s,run,d,vma),B[0],B,s);return stepWrap(decorate(h,B,s,d,b,ri,ens),B,s,d)}).join('')}
+  ${b.runners.length>1?`<style>body{background:var(--run-${COUL[ri]||'a'})!important}</style>`:''}
+  <button type="button" class="pouls-fab" data-pls="1" aria-label="Prendre mon pouls">❤ Pouls</button>
   ${M?`<div class="vmaline"><span>Ma vitesse de marche : <b>${vma?fV(vma)+' km/h':'à mesurer en '+(s.id[0]==='t'?'T1':'S1')}</b></span></div>`:`<div class="vmaline"><span>${s.id[0]==='s'?'Ma vitesse sur 3’':'VMA utilisée'} : <b>${vma?fV(vma)+' km/h':'à mesurer en '+(s.id[0]==='t'?'T2':'S1')}</b>${s.id[0]==='s'&&vma?' <span class="muted">· VMA estimée '+fV(vma*VMA_3)+'</span>':''}</span><button class="btn sm" data-act="calc">🧮 Calculer</button></div>`}
   ${calcAvant?'':obj}
   ${(x=>x?`<div class="vmaline"><span>📏 Distance de la séance : <b>${x} m</b> <span class="muted">(échauffement compris)</span></span></div>`:'')(distSeance(run,s.id))}
@@ -209,7 +239,7 @@ function sessView(){
 const RESULT=['ec2','afl1','afl1T','vup','mnote'];
 const STEP_KEY={al4:'al',ct:'ct',grp:'grp',i36:'i36',i36m:'i36',ra:'ra',ra2:'ra2',m130:'m130',warm:'wc',warmT:'wc',pf:'pf',pfT:'pf',situe:'situe',at:'at',pe:'pe',rel5:'rlt',tours:'tr',t3624:'ts',rt:'rt',i112:'c112',rep:'rep',mine:'mi',real8:'r8',pfin:'pfin',mwarm:'mw',mtech:'mt',mall:'ma',mfr:'mf',mpf:'pf',mpe:'pe'};
 function filled(x){if(x==null||x==='')return false;if(Array.isArray(x))return x.some(filled);if(typeof x==='object')return Object.keys(x).some(k=>filled(x[k]));return true}
-function stepDone(B,d){const [ty,a1]=B;
+function stepDone(B,d){const [ty,a1]=B;if((d.np||[]).includes(npKey(B)))return true;
   if(ty==='t3m')return c3dist(d.t3m)!=null;if(ty==='ann')return num(d.ann)!=null;
   if(ty==='m3')return m3dist(d[a1])!=null;if(ty==='m1000')return parseT(d[a1]&&d[a1].t)!=null;if(ty==='mpause')return filled(d[a1]);
   if(ty==='bilan'){const s=SBY[V.sid];return (!s||!voit('rpe',s)||filled(getPath(d,'bl.rpe')))&&(filled(getPath(d,'bl.reu'))||filled(getPath(d,'bl.nx')))}
@@ -243,7 +273,8 @@ const txt=(path,d,ph)=>`<textarea class="in" data-p="${path}" rows="2" placehold
 const segv=(path,d,opts)=>{const v=getPath(d,path);return `<div class="seg">${opts.map(o=>`<button class="chip ${String(v)===String(o[0])?'on':''}" data-set="${path}" data-v="${o[0]}">${o[1]}</button>`).join('')}</div>`};
 const out=(lab,val,cls)=>`<div class="out ${cls||''}"><span>${lab}</span><b>${val}</b></div>`;
 const okb=ok=>ok==null?'':ok?'<span class="ok">✓ tenu</span>':'<span class="ko">✗</span>';
-const who=w=>`<span class="who">${w==='C'?'⏱ coach pendant':w==='R'?'✎ coureur':'⏱ coach · ✎ coureur'}</span>`;
+/* Qui remplit la case : C = le binôme note pendant la course ; R = je note moi-même ; CR = les deux */
+const who=w=>`<span class="who" data-who="${w}">${w==='C'?'📋 Le binôme note':w==='R'?'✍ Je note':'📋✍ On note à deux'}</span>`;
 const sbOpt=o=>esc(JSON.stringify({mn:o.min,mx:o.max,s0:o.start}));
 /* nombre : − [case] + ; la case reste modifiable au clavier */
 function stp(path,d,o){o=o||{};const v=getPath(d,path),st=o.step||1;const w=o.chk?o.chk(num(v)):'';

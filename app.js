@@ -380,8 +380,8 @@ document.addEventListener('click',async e=>{
     let nv=cur==null?(o.s0!=null?o.s0:(o.mn!=null?o.mn:0)):cur+dl_;if(o.mn!=null)nv=Math.max(o.mn,nv);if(o.mx!=null)nv=Math.min(o.mx,nv);nv=R(nv*10)/10;
     setPath(d,ds.stp,isT?fT(nv):String(nv).replace('.',','));if(ds.stp==='vj'){const m=vmaOf(G.runners[V.ri||0],V.sid);if(m!=null&&Math.abs(nv-m)<0.05)delete d.vj}
     fixP(d);saveS();return keepScroll(render)}
-  if(ds.set!==undefined&&V.tab==='seance'){const d=curD();let val=ds.v;if(getPath(d,ds.set)===val&&!ds.set.startsWith('bl.cr'))val='';setPath(d,ds.set,val);fixP(d);saveS();return keepScroll(render)}
-  if(ds.tog&&V.tab==='seance'){const d=curD();const x=d[ds.tog]=d[ds.tog]||[];const i=x.indexOf(ds.v);const met=i<0;
+  if(ds.set!==undefined&&V.tab==='seance'){const d=ds.rn!=null?sd(G.runners[+ds.rn],V.sid):curD();let val=ds.v;if(getPath(d,ds.set)===val&&!ds.set.startsWith('bl.cr'))val='';setPath(d,ds.set,val);fixP(d);saveS();return keepScroll(render)}
+  if(ds.tog&&V.tab==='seance'){const d=ds.rn!=null?sd(G.runners[+ds.rn],V.sid):curD();const x=d[ds.tog]=d[ds.tog]||[];const i=x.indexOf(ds.v);const met=i<0;
     /* data-all : coche commune à tout le binôme (échauffement) */
     const cibles=ds.all?G.runners.map(r=>sd(r,V.sid)):[d];cibles.forEach(dd=>{const y=dd[ds.tog]=dd[ds.tog]||[];const j=y.indexOf(ds.v);if(met&&j<0)y.push(ds.v);if(!met&&j>=0)y.splice(j,1)});
     if(ds.all)G.runners.forEach(r=>{if(r.imp)delete r.imp[V.sid]});saveS();return keepScroll(render)}
@@ -390,6 +390,12 @@ document.addEventListener('click',async e=>{
     dd.wfoot=String(Math.round(t*200));if(G.runners[i].imp)delete G.runners[i].imp[V.sid];saveS();return keepScroll(render)}
   if(ds.wtim!==undefined||ds.wta!==undefined){wTimer(ds.wtim!==undefined?{dur:+ds.wtim}:{act:ds.wta});return}
   if(ds.sugg!==undefined&&V.tab==='seance'){const d=curD();const c=getPath(d,'bl.con')||'';if(c.includes(ds.sugg))setPath(d,'bl.con',c.replace(ds.sugg,'').replace(/^\s*[;·]\s*|\s*[;·]\s*$/g,'').replace(/\s*;\s*;\s*/,' ; '));else setPath(d,'bl.con',(c?c.trim()+' ; ':'')+ds.sugg);saveS();return keepScroll(render)}
+  if(ds.tourn!==undefined&&V.tab==='seance'){V.ri=+ds.tourn;return keepScroll(render)}
+  if(ds.np!==undefined&&V.tab==='seance'){const d=curD();const x=d.np=d.np||[];const i=x.indexOf(ds.np);if(i>=0)x.splice(i,1);else x.push(ds.np);saveS();return keepScroll(render)}
+  if(ds.xc!==undefined){xcAct(ds.xc);return}
+  if(ds.pls!==undefined){poulsLibre();return}
+  if(ds.rc!==undefined){recAct(ds.rc);return}
+  if(ds.cur!==undefined&&V.tab==='seance'&&V.ph!=='fin'&&+ds.cur>(V.cur||0)){try{const s0=SBY[V.sid],L=stepList(s0),B=L[V.cur||0];if(B&&!NO_DECO.includes(B[0])&&!RESULT.includes(B[0]))recStart(180)}catch(e){}}
   if(ds.cur!==undefined){V.cur=+ds.cur;render();const st=$('.steps');if(st)window.scrollTo(0,Math.max(0,st.getBoundingClientRect().top+window.scrollY-70));return}
   if(ds.pc!==undefined){const r=G.runners[+ds.pc];if(r){r.pc=r.pc==='m'?'':'m';V.cur=0;save();render()}return}
   if(ds.ad!==undefined&&V.tab==='seance'){const r=G.runners[+ds.ad],d=sd(r,V.sid);if(d.ad)delete d.ad;else d.ad='1';saveS();return keepScroll(render)}
@@ -533,3 +539,30 @@ function wTimer(o){
   wAff()}
 /* après chaque affichage, le minuteur reste affiché s'il tourne */
 new MutationObserver(()=>{if(WT&&document.getElementById('wtimer')&&document.getElementById('wtimer').hidden)wAff()}).observe(document.getElementById('main')||document.body,{childList:true,subtree:true});
+
+/* ---------- chrono d'exercice (un seul, partagé par les cartes) ---------- */
+const XC={t0:0,acc:0,run:false,h:0};
+const xcVal=()=>XC.acc+(XC.run?(Date.now()-XC.t0)/1000:0);
+function xcAff(){const v=xcVal(),m=Math.floor(v/60),sec=v-m*60;const t=m+':'+(sec<10?'0':'')+sec.toFixed(1).replace('.',',');
+  document.querySelectorAll('.xchr-t').forEach(e=>e.textContent=t);document.querySelectorAll('[data-xc="go"]').forEach(b=>b.textContent=XC.run?'Stop':(XC.acc?'Reprendre':'Démarrer'))}
+function xcAct(a){if(a==='go'){if(XC.run){XC.acc=xcVal();XC.run=false;clearInterval(XC.h)}else{XC.t0=Date.now();XC.run=true;clearInterval(XC.h);XC.h=setInterval(xcAff,100)}}
+  if(a==='r'){XC.run=false;XC.acc=0;clearInterval(XC.h)}xcAff()}
+/* ---------- récupération : bandeau vert en haut, jamais une fenêtre ; le pouls passe d'abord ---------- */
+let REC=null;
+function recReste(){return REC?Math.max(0,REC.fin-Date.now())/1000:0}
+function recStart(sec){clearInterval(REC&&REC.h);REC={fin:Date.now()+sec*1000,pouls:true,bip:false};REC.h=setInterval(recAff,250);recAff()}
+function recAct(a){if(!REC)return;if(a==='x'){clearInterval(REC.h);REC=null;const b=document.getElementById('recband');if(b)b.remove();return}
+  if(a==='m')REC.fin-=30000;if(a==='p')REC.fin+=30000;if(a==='pl'){REC.pouls=false;poulsLibre()}if(a==='np')REC.pouls=false;recAff()}
+function recAff(){const main=document.getElementById('main');if(!REC||!main)return;if(V.tab!=='seance'){return}
+  let b=document.getElementById('recband');if(!b){b=document.createElement('div');b.id='recband';main.prepend(b)}
+  const r=Math.ceil(recReste()),t=Math.floor(r/60)+':'+String(r%60).padStart(2,'0');
+  if(r<=0&&!REC.bip){REC.bip=true;wBip()}
+  const html=`<div class="recband ${r<=0?'fini':''}"><span>${r<=0?'Récupération finie : on repart !':'Récupération'}</span><b>${t}</b><span class="rb"><button type="button" class="chip sm" data-rc="m">−30 s</button><button type="button" class="chip sm" data-rc="p">+30 s</button><button type="button" class="chip sm" data-rc="x" aria-label="Fermer">✕</button></span></div>
+   ${REC.pouls?`<div class="poulscard"><b>❤ Prends ton pouls maintenant !</b><span>Tout de suite après l’effort, avant qu’il redescende.</span><button type="button" class="poulsgo" data-rc="pl">❤ Touche ici pour compter 15 s</button><button type="button" class="lnk small" data-rc="np">Pas cette fois</button></div>`:''}`;
+  if(b.dataset.h!==html){b.innerHTML=html;b.dataset.h=html}}
+new MutationObserver(()=>{if(REC&&V.tab==='seance'&&!document.getElementById('recband'))recAff();if(XC.acc||XC.run)xcAff()}).observe(document.getElementById('main')||document.body,{childList:true});
+/* pouls libre : bouton ❤ et carte de récupération ; la mesure est gardée dans la séance du coureur affiché */
+function poulsLibre(){if(!window.EPSPouls||!G||!V.sid)return toast('Prise de pouls indisponible.');const ri=V.ri||0,run=G.runners[ri];
+  EPSPouls.ouvrir({titre:'Pouls de '+run.prenom,note:'Mesure tout de suite après l’effort : le pouls baisse vite.',recup:true,
+    onFC:v=>{const d=sd(run,V.sid);(d.pls=d.pls||[]).push({h:Date.now(),fc:v,et:(V.cur||0)+1});saveS();toast('Pouls noté : '+v+' /min')},
+    onRecup:(fc,rec)=>{const d=sd(run,V.sid);const x=(d.pls||[])[(d.pls||[]).length-1];if(x){x.fcr=rec;saveS()}}})}

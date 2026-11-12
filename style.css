@@ -368,3 +368,25 @@ header img.logo{border-radius:10px;object-fit:cover;background:#fff}
 .wtimer{position:sticky;bottom:84px;z-index:30;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;background:#1c2128;color:#fff;border-radius:14px;padding:8px 10px;margin:6px 0}
 .wtimer-t{font-size:38px;font-weight:900;font-variant-numeric:tabular-nums;min-width:110px;text-align:center}
 .wtimer .chip{background:#fff;color:#1c2128}.wtimer.fin{background:#15803d}
+
+/* séance en direct : couleur du coureur, à tour de rôle / ensemble, chrono, récupération, pouls */
+:root{--run-a:#dbeafe;--run-b:#ffedd5;--run-c:#dcfce7}
+.tour{border-radius:14px;padding:10px 12px;color:#fff;margin:6px 0;display:flex;flex-direction:column;gap:2px}
+.tour.ta{background:#1d4ed8}.tour.tb{background:#c2410c}.tour.tc{background:#15803d}
+.tour b{font-size:20px}.tour-sw{margin-top:6px;background:#fff;color:#14181f;border:0;border-radius:12px;min-height:48px;font:inherit;font-weight:800;font-size:17px;cursor:pointer}
+.modeline{margin:4px 0}.tag.mode{background:#e0e7ff;color:#3730a3;border-radius:99px;padding:3px 10px;font-weight:700;font-size:13px}
+.roleline{font-size:13.5px;color:#4b5563;margin:2px 0 6px}
+.xchr{display:flex;align-items:center;gap:8px;background:#1c2128;color:#fff;border-radius:12px;padding:6px 10px;margin:6px 0}
+.xchr-t{font-size:30px;font-variant-numeric:tabular-nums;flex:1}.xchr .chip{background:#fff;color:#14181f}
+.btn.np{display:block;width:100%;margin-top:10px;background:#fff;border:2px dashed #9ca3af;color:#4b5563;font-weight:700}
+.btn.np.on{border-style:solid}.npline{background:#f1f5f9;border-radius:10px;padding:8px;font-size:14px}
+.ens{display:grid;grid-template-columns:1fr;gap:8px}@media(min-width:700px){.ens{grid-template-columns:1fr 1fr}}
+.ens-c{border-radius:12px;padding:8px;border:2px solid}.ens-c.ca{background:#dbeafe;border-color:#1d4ed8}.ens-c.cb{background:#ffedd5;border-color:#c2410c}.ens-c.cc{background:#dcfce7;border-color:#15803d}
+.ens-n{display:block;font-size:18px;margin-bottom:4px}
+#recband{position:sticky;top:0;z-index:40;margin:-4px -4px 8px}
+.recband{background:#15803d;color:#fff;border-radius:0 0 14px 14px;padding:8px 12px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;justify-content:space-between;box-shadow:0 6px 16px rgba(0,0,0,.2)}
+.recband b{font-size:30px;font-variant-numeric:tabular-nums}.recband .rb{display:flex;gap:4px}.recband .chip{background:#fff;color:#14181f}.recband.fini{background:#b45309}
+.poulscard{background:#fff1f2;border:3px solid #e11d48;border-radius:16px;padding:12px;margin:8px 0;text-align:center;display:flex;flex-direction:column;gap:6px;animation:pulsec 1.2s infinite}
+.poulscard b{font-size:20px;color:#be123c}.poulsgo{background:#e11d48;color:#fff;border:0;border-radius:14px;min-height:56px;font:inherit;font-size:19px;font-weight:900;cursor:pointer}
+@keyframes pulsec{50%{box-shadow:0 0 0 7px rgba(225,29,72,.16)}}
+.pouls-fab{position:fixed;right:14px;bottom:86px;z-index:35;background:#e11d48;color:#fff;border:0;border-radius:99px;padding:14px 18px;font:inherit;font-weight:900;font-size:17px;box-shadow:0 6px 16px rgba(225,29,72,.4);cursor:pointer}

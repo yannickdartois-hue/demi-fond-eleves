@@ -327,15 +327,24 @@ function vGroupe(){
   <p class="ver">Les données restent sur cette tablette. Elles partent seulement quand vous les envoyez au professeur (QR code ou envoi en ligne). ${APP_VERSION}</p>`;
 }
 /* ----- Envoyer ----- */
+function demandeBilan(act){const BM=bilansManquants(V.sid);
+  return modal(`<h2>Il manque un bilan</h2><p>${BM.map(([r])=>esc(r.prenom)).join(' et ')} n’${BM.length>1?'ont':'a'} pas fait ${BM.length>1?'leur':'son'} bilan de fin de séance (1 minute).</p>
+   <div class="col">${BM.map(([r,k])=>`<button class="btn pri big" data-act="fairebilan" data-v="${k}">Faire le bilan de ${esc(r.prenom)} d’abord</button>`).join('')}
+   <button class="btn sm ghost" data-act="${act}" data-force="1">Envoyer quand même (fin d’heure)</button></div>`)}
 function resumeTxt(run,sid){const d=run.seances&&run.seances[sid];if(!hasData(d))return '';if(d.st)return ST_TXT[d.st];const [t,n]=tenR(run,sid);const L=[];
   if(n)L.push(t+'/'+n+' projets tenus');const rp=num((d.bl||{}).rpe);if(rp!=null)L.push('effort '+rp+'/10');if(d.ad)L.push('pratique adaptée');if(d.cx&&d.cx.n)L.push('coach remplaçant');return L.join(' · ')||'séance commencée'}
+/* bilan fait ? null = rien saisi ; absent = pas de bilan ; ne court pas = bilan de rôle */
+function bilanOK(r,sid){const d=r.seances&&r.seances[sid];if(!hasData(d))return null;if(d.st==='abs')return true;if(d.st==='bl')return filled(getPath(d,'bl.nx'));return stepDone(['bilan'],d)}
+function bilansManquants(sid){return G.runners.map((r,k)=>[r,k]).filter(([r])=>bilanOK(r,sid)===false)}
 function vEnvoi(){
   const b=G,sid=V.sid,s=SBY[sid],ev=b.envoi[sid]||{},LET='ABC';const st=sessState(b,sid);
   const lignes=b.runners.map((r,k)=>{const ok=hasData(r.seances&&r.seances[sid])&&!(r.imp&&r.imp[sid]);
-    return `<li class="${ok?'':'manque'}"><span class="lettre">${LET[k]}</span><span><b>${esc(r.prenom)} ${esc(r.nom)}</b><small>${ok?esc(resumeTxt(r,sid)):'rien de saisi'}</small></span>${ok?'<em>✓</em>':''}</li>`}).join('');
+    return `<li class="${ok?'':'manque'}"><span class="lettre">${LET[k]}</span><span><b>${esc(r.prenom)} ${esc(r.nom)}</b><small>${ok?esc(resumeTxt(r,sid)):'rien de saisi'}</small>${ok&&r.seances[sid].st!=='abs'?(bilanOK(r,sid)?'<small class="ok">✓ bilan fait</small>':'<small class="bko">✗ bilan pas fait</small>'):''}</span>${ok?'<em>✓</em>':''}</li>`}).join('');
+  const BM=bilansManquants(sid);
   const F=fichiers([sid]);const autres=nonEnvoyees().filter(x=>x.id!==sid);
   return `<section class="card"><h2>Fin de séance ${s.n}</h2><p class="muted small">${esc(s.t)}</p>${F.length&&sessState(b,sid)==='sent'?AVT('bravo','Séance envoyée. Bravo, à la prochaine !'):''}<ul class="envoi">${lignes}</ul>
    ${b.runners.some(r=>!hasData(r.seances&&r.seances[sid]))?'<p class="warn small">Chaque élève remplit sa séance (son prénom en haut de l’écran Séance). Un absent ? Marque-le « absent » : le prof le saura.</p>':''}
+   ${BM.length?`<div class="bmanque"><b>Il manque le bilan de ${BM.map(([r])=>esc(r.prenom)).join(' et de ')} (1 minute).</b>${BM.map(([r,k])=>`<button class="btn pri" data-act="fairebilan" data-v="${k}">Faire le bilan de ${esc(r.prenom)}</button>`).join('')}</div>`:''}
    <div class="gros"><button class="btn pri big" data-act="enligne" ${F.length?'':'disabled'}>Envoyer la séance en ligne</button>${ev.fichier?`<p class="ok small">✓ envoyée à ${heure(ev.fichier)}</p>`:''}
    <button class="btn big" data-act="qr" ${F.length?'':'disabled'}>Montrer les QR codes au prof</button>${ev.qr?`<p class="ok small">✓ QR montrés à ${heure(ev.qr)}</p>`:''}
    ${st==='resend'?'<p class="warn small center">Séance modifiée depuis le dernier envoi : renvoie-la.</p>':''}</div></section>
@@ -439,11 +448,13 @@ document.addEventListener('click',async e=>{
     case 'cxdel':delete curD().cx;saveS();closeModal();return keepScroll(render);
     case 'finseance':V.tab='envoi';render();return window.scrollTo(0,0);
     /* envoi */
-    case 'qr':QRS=null;return montrerQR([V.sid],0);
+    case 'fairebilan':closeModal();V.ri=+v;V.ph='fin';V.cur=0;V.tab='seance';render();return window.scrollTo(0,0);
+    case 'qr':if(!ds.force&&bilansManquants(V.sid).length)return demandeBilan('qr');QRS=null;return montrerQR([V.sid],0);
     case 'qrTout':QRS=null;return montrerQR(nonEnvoyees().map(s=>s.id),0);
     case 'qrnav':return montrerQR(QRS?QRS.sids:[V.sid],+v);
     case 'qrfin':{const sids=QRS?QRS.sids:[V.sid];closeModal();if(!DEMO)marquerEnvoye(sids,'qr');return render()}
     case 'enligne':case 'enligneTout':{
+      if(a==='enligne'&&!ds.force&&bilansManquants(V.sid).length)return demandeBilan('enligne');
       const sids=a==='enligne'?[V.sid]:nonEnvoyees().map(s=>s.id);
       if(DEMO)return modal(`<h2>Mode démo</h2><p>En vrai, ce bouton prépare un fichier par élève et ouvre l’espace de dépôt du professeur. En démo, rien n’est envoyé.</p><p class="small muted">« Montrer les QR codes » fonctionne pour voir à quoi ils ressemblent.</p><div class="row"><button class="btn" data-act="closem">Fermer</button></div>`);
       if(!lienEnvoi())return modal(`<h2>Envoi en ligne</h2><p>L’envoi en ligne n’est pas encore activé pour ta classe (il arrive avec le QR de la classe du professeur).</p><p><b>Montre tes QR codes</b> au professeur à la place.</p><div class="row wrap" style="justify-content:space-between"><button class="btn" data-act="closem">Fermer</button><button class="btn pri" data-act="${a==='enligne'?'qr':'qrTout'}">Montrer les QR codes</button></div>`);

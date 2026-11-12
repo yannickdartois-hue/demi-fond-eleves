@@ -323,22 +323,27 @@ function blockView(b,s,run,d,vma){
      <p class="small"><b>✎ Je récupère…</b></p>${q('rec',[['vite','vite (souffle calme)'],['lent','lentement']])}
      ${tip?`<p class="calcsteps"><b>Pour la course suivante :</b> ${tip}</p>`:''}
      <p class="muted small">Tactique : rabats-toi au couloir 1 et ne le quitte que pour dépasser, en ligne droite ; au couloir 2, tu cours plus loin.</p></section>`}
-  if(ty==='warm'||ty==='warmT'){const wc=d.wc||[];const has=k=>wc.includes(k);const seul=s.id==='s8'||s.id==='t9';
-    const chips=L=>`<div class="seg wc">${L.map(x=>`<button class="chip sm ${has(x[0])?'on':''}" data-tog="wc" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>`;
-    const nS=['sg1','sg2','sg3'].filter(has).length,nR=WARM_EX[3].filter(x=>has(x[0])).length,nG=GAMMES.filter(g=>has(g[0])).length,nE=ETIR.filter(e=>has(e[0])).length;
+  if(ty==='warm'||ty==='warmT'){const bin=curBin(),RS=bin.runners,dA=RS.map(r=>sd(r,V.sid));const wc=d.wc||[];const has=k=>wc.includes(k);const seul=s.id==='s8'||s.id==='t9';
+    /* Échauffement commun au binôme : une coche vaut pour tous (data-all) ; seule la distance de footing est individuelle. */
+    const chips=L=>`<div class="seg wc">${L.map(x=>`<button class="chip sm ${has(x[0])?'on':''}" data-tog="wc" data-all="1" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>`;
+    const nS=['sg1','sg2','sg3'].filter(has).length,nR=WARM_EX[3].filter(x=>has(x[0])).length,nG=GAMMES.filter(g=>has(g[0])).length,nE=ETIR.filter(e=>has(e[0])).length,nA=WARM_EX[1].filter(x=>has(x[0])).length,nF=WARM_EX[5].filter(x=>has(x[0])).length;
     const img=f=>`<img src="img/echauffement/${f}" alt="" class="wimg">`;
-    const carte=(k,f,t,lignes)=>seul?'':`<button class="wcard ${has(k)?'on':''}" data-tog="wc" data-v="${k}">${img(f)}<b>${esc(t)}</b>${lignes.map(l=>`<span>${esc(l)}</span>`).join('')}</button>`;
-    return `<section class="card"><h3>1 · Mon échauffement ${who('R')}</h3><p class="muted small">${seul?'Seul, sans aide : coche ce que tu as fait.':'Environ 15 min. Coche au fur et à mesure.'}</p>
-    <p class="small"><b>Partie 1 · Cardio, 5 min</b> <span class="${nS===3?'ok':'muted'}">${nS} / 3 signes : je passe à la suite quand les 3 sont là</span></p>${chips(WARM_EX[0])}
-    <label class="small">Distance de mon footing (m) ${stp('wfoot',d,{step:100,min:0,max:3000,start:800})}</label>
-    <p class="small"><b>Partie 2 · Articulaire, 2 min</b> <span class="muted">dans cet ordre, de bas en haut</span></p>${chips(WARM_EX[1])}
-    <p class="small"><b>Partie 3 · Étirements actifs-dynamiques, 3 min</b> <span class="${nE===4?'ok':'muted'}">${nE} / 4</span></p>
-    <p class="muted small">Chaque côté : ① j’allonge et je contracte sans bouger 4 s · ② je freine en contractant 4 s · je relâche · ③ 8 s de mouvement.</p>
-    ${seul?chips(WARM_EX[2]):`<div class="wgrid">${ETIR.map(e=>carte(e[0],e[2],e[1],['① '+e[3],'② '+e[4],'③ '+e[5]])).join('')}</div>`}
-    <p class="small"><b>Partie 4 · Renforcement, 2 min</b> <span class="${nR>=3?'ok':'muted'}">${nR} / 3 au choix</span></p>${chips(WARM_EX[3])}
-    <p class="small"><b>Partie 5 · Gammes, 3 min</b> <span class="${nG>=4?'ok':'muted'}">${nG} / 4 au choix</span> · 20 à 30 m, retour en trottinant</p>
-    ${seul?chips(WARM_EX[4]):`<div class="wgrid g">${GAMMES.map(g=>carte(g[0],g[2],g[1],[g[3],'✓ '+g[4]])).join('')}</div>`}
-    <p class="small"><b>Fin, obligatoire</b></p>${chips(WARM_EX[5])}
+    const carte=(k,f,t,lignes)=>seul?'':`<button class="wcard ${has(k)?'on':''}" data-tog="wc" data-all="1" data-v="${k}">${img(f)}<b>${esc(t)}</b>${lignes.map(l=>`<span>${esc(l)}</span>`).join('')}</button>`;
+    const part=(k,titre,min,fait,detail,note)=>{const ok=has(k)||fait;return `<div class="wpart${ok?' on':''}"><button type="button" class="wpart-bt" data-tog="wc" data-all="1" data-v="${k}" aria-pressed="${has(k)}"><span class="wpart-c">${ok?'✓':''}</span><span><b>${titre}</b> <span class="muted">· ${min} min</span>${note?`<br><span class="small muted">${note}</span>`:''}</span></button>
+      <button type="button" class="wpart-min" data-wtim="${min*60}" aria-label="Minuteur ${min} min">⏱ ${min}′</button>
+      <details class="wdet"><summary>Voir le détail</summary>${detail}</details></div>`};
+    const noms=RS.map(r=>esc(r.prenom)).join(' et ');
+    const foot=RS.map((r,i)=>`<label class="small wfoot-l"><b>${esc(r.prenom)}</b> ${stp('wfoot',dA[i],{step:100,min:0,max:3000,start:800}).replace(/data-stp="wfoot"/g,`data-stp="wfoot" data-rn="${i}"`).replace(/data-p="wfoot"/,`data-p="wfoot" data-rn="${i}"`)}</label>`).join('');
+    return `<section class="card"><h3>1 · Notre échauffement ${who('R')}</h3>
+    <p class="muted small">${seul?'Seul, sans aide : coche chaque partie faite.':`Commun à ${noms} : une coche vaut pour ${RS.length>2?'tous':'les deux'}. Environ 15 min. Touche une partie quand elle est faite.`}</p>
+    <div class="wtimer" id="wtimer" hidden><span class="wtimer-t" id="wtt">0:00</span><button type="button" class="chip sm" data-wta="go" id="wtgo">Démarrer</button><button type="button" class="chip sm" data-wta="m">−30 s</button><button type="button" class="chip sm" data-wta="p">+30 s</button><button type="button" class="chip sm" data-wta="x" aria-label="Fermer le minuteur">✕</button></div>
+    ${part('P1','Cardio',5,nS===3,`<p class="small">${nS} / 3 signes : je passe à la suite quand les 3 sont là</p>${chips(WARM_EX[0])}`,'Footing de plus en plus vite, puis talons-fesses, montées de genoux, pas chassés')}
+    <div class="wfoot"><span class="small"><b>Distance du footing (m)</b>, chacun la sienne</span>${foot}</div>
+    ${part('P2','Articulaire',2,nA===WARM_EX[1].length,`<p class="small muted">Dans cet ordre, de bas en haut.</p>${chips(WARM_EX[1])}`,'Chevilles → genoux et hanches → tronc → épaules → poignets → nuque')}
+    ${part('P3','Étirements actifs-dynamiques',3,nE===4,`<p class="muted small">Chaque côté : ① j’allonge et je contracte sans bouger 4 s · ② je freine en contractant 4 s · je relâche · ③ 8 s de mouvement.</p>${seul?chips(WARM_EX[2]):`<div class="wgrid">${ETIR.map(e=>carte(e[0],e[2],e[1],['① '+e[3],'② '+e[4],'③ '+e[5]])).join('')}</div>`}`,'Mollets, ischio-jambiers, quadriceps, fléchisseurs de hanche')}
+    ${part('P4','Renforcement',2,nR>=3,`<p class="small">${nR} / 3 au choix</p>${chips(WARM_EX[3])}`,'3 exercices au choix')}
+    ${part('P5','Gammes',3,nG>=4,`<p class="small">${nG} / 4 au choix · 20 à 30 m, retour en trottinant</p>${seul?chips(WARM_EX[4]):`<div class="wgrid g">${GAMMES.map(g=>carte(g[0],g[2],g[1],[g[3],'✓ '+g[4]])).join('')}</div>`}`,'4 gammes au choix, 20 à 30 m')}
+    ${part('P6','Fin, obligatoire',2,nF===WARM_EX[5].length,chips(WARM_EX[5]),'3 accélérations progressives, puis 1 passage à l’allure du jour')}
     <label class="small">Autre chose ${txt('wx',d)}</label>
     ${ty==='warmT'?`<label>Ma récup entre C1 et C2 ${txt('rc',d,'ex. 2 min marche, étirements doux, 2 min trot, je bois un peu')}</label><label>Ma récup entre C2 et C3 ${txt('rc2',d)}</label>`:''}</section>`}
   if(ty==='t3m'){const c=d.t3m||{};const dd=c3dist(c);

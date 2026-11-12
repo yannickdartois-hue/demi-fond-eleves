@@ -376,12 +376,16 @@ document.addEventListener('click',async e=>{
   if(ds.ph){V.ph=ds.ph;V.cur=0;V.tab='seance';render();return window.scrollTo(0,0)}
   if(ds.sx){t.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));t.classList.add('on');return}
   /* saisie de séance (repris du carnet v12) */
-  if(ds.stp&&V.tab==='seance'){const d=curD();const o=JSON.parse(ds.o||'{}');const isT=ds.tm==='1';const dl_=+ds.dl;const cur=isT?parseT(getPath(d,ds.stp)):num(getPath(d,ds.stp));
+  if(ds.stp&&V.tab==='seance'){const d=ds.rn!=null?sd(G.runners[+ds.rn],V.sid):curD();const o=JSON.parse(ds.o||'{}');const isT=ds.tm==='1';const dl_=+ds.dl;const cur=isT?parseT(getPath(d,ds.stp)):num(getPath(d,ds.stp));
     let nv=cur==null?(o.s0!=null?o.s0:(o.mn!=null?o.mn:0)):cur+dl_;if(o.mn!=null)nv=Math.max(o.mn,nv);if(o.mx!=null)nv=Math.min(o.mx,nv);nv=R(nv*10)/10;
     setPath(d,ds.stp,isT?fT(nv):String(nv).replace('.',','));if(ds.stp==='vj'){const m=vmaOf(G.runners[V.ri||0],V.sid);if(m!=null&&Math.abs(nv-m)<0.05)delete d.vj}
     fixP(d);saveS();return keepScroll(render)}
   if(ds.set!==undefined&&V.tab==='seance'){const d=curD();let val=ds.v;if(getPath(d,ds.set)===val&&!ds.set.startsWith('bl.cr'))val='';setPath(d,ds.set,val);fixP(d);saveS();return keepScroll(render)}
-  if(ds.tog&&V.tab==='seance'){const d=curD();const x=d[ds.tog]=d[ds.tog]||[];const i=x.indexOf(ds.v);if(i>=0)x.splice(i,1);else x.push(ds.v);saveS();return keepScroll(render)}
+  if(ds.tog&&V.tab==='seance'){const d=curD();const x=d[ds.tog]=d[ds.tog]||[];const i=x.indexOf(ds.v);const met=i<0;
+    /* data-all : coche commune à tout le binôme (échauffement) */
+    const cibles=ds.all?G.runners.map(r=>sd(r,V.sid)):[d];cibles.forEach(dd=>{const y=dd[ds.tog]=dd[ds.tog]||[];const j=y.indexOf(ds.v);if(met&&j<0)y.push(ds.v);if(!met&&j>=0)y.splice(j,1)});
+    if(ds.all)G.runners.forEach(r=>{if(r.imp)delete r.imp[V.sid]});saveS();return keepScroll(render)}
+  if(ds.wtim!==undefined||ds.wta!==undefined){wTimer(ds.wtim!==undefined?{dur:+ds.wtim}:{act:ds.wta});return}
   if(ds.sugg!==undefined&&V.tab==='seance'){const d=curD();const c=getPath(d,'bl.con')||'';if(c.includes(ds.sugg))setPath(d,'bl.con',c.replace(ds.sugg,'').replace(/^\s*[;·]\s*|\s*[;·]\s*$/g,'').replace(/\s*;\s*;\s*/,' ; '));else setPath(d,'bl.con',(c?c.trim()+' ; ':'')+ds.sugg);saveS();return keepScroll(render)}
   if(ds.cur!==undefined){V.cur=+ds.cur;render();const st=$('.steps');if(st)window.scrollTo(0,Math.max(0,st.getBoundingClientRect().top+window.scrollY-70));return}
   if(ds.pc!==undefined){const r=G.runners[+ds.pc];if(r){r.pc=r.pc==='m'?'':'m';V.cur=0;save();render()}return}
@@ -458,7 +462,7 @@ document.addEventListener('keydown',ev=>{if(ev.target&&ev.target.id==='code'&&ev
 document.addEventListener('input',e=>{const el=e.target;if(!G)return;
   if(['cvma','cpct','csec','cdist'].includes(el.id)){const v=num(el.value);if(el.id==='cvma')CALC.vma=v;if(el.id==='cpct')CALC.pct=v;if(el.id==='csec')CALC.sec=v;if(el.id==='cdist')CALC.dist=v;
     document.querySelectorAll('[data-cpct]').forEach(b=>b.classList.toggle('on',+b.dataset.cpct===CALC.pct));return calcOut()}
-  if(el.dataset.p&&V.tab==='seance'){const r=G.runners[V.ri||0],d=sd(r,V.sid);setPath(d,el.dataset.p,el.value);fixP(d);
+  if(el.dataset.p&&V.tab==='seance'){const r=G.runners[el.dataset.rn!=null?+el.dataset.rn:(V.ri||0)],d=sd(r,V.sid);setPath(d,el.dataset.p,el.value);fixP(d);
     if(el.dataset.p==='vj'){const m=vmaOf(r,V.sid),x=num(el.value);if(x==null||(m!=null&&Math.abs(x-m)<0.05))delete d.vj}saveS()}
   if(el.dataset.vm!==undefined){G.runners[+el.dataset.vm].vmaManuelle=el.value;save()}
 });
@@ -508,3 +512,21 @@ function chOuvrir(){V.tab='chrono'}
 if(window.EPSCode)EPSCode.eleve({app:'dfe',classe:()=>G&&G.classe||'',seance:()=>G?String(V.sid||''):'',seances:()=>G?sessOf(G.cy).map(s=>s.id):[],nom:s=>(SBY[s]||{n:s}).n,
   ouvrir:s=>{if(!G)return;V.sid=s;V.tab='seance';V.ri=0;V.cur=0;V.ph='piste';V.presOpen=false;G.jours=G.jours||{};G.jours[today()]=s;save();render()},
   actif:()=>!!G&&['seance','moi','chrono'].includes(V.tab),libreSel:'[data-tab],[data-ph],[data-ri],[data-sess],[data-cur],[data-calc]',libre:['calc','closem','qrnav'],demo:()=>DEMO});
+
+/* ---------- minuteur d'échauffement (réglable, bip à la fin) ---------- */
+let WT=null;
+function wBip(){try{const C=new (window.AudioContext||window.webkitAudioContext)();[0,0.35,0.7].forEach(t=>{const o=C.createOscillator(),g=C.createGain();o.frequency.value=880;o.connect(g);g.connect(C.destination);g.gain.setValueAtTime(0.0001,C.currentTime+t);g.gain.exponentialRampToValueAtTime(0.6,C.currentTime+t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,C.currentTime+t+0.28);o.start(C.currentTime+t);o.stop(C.currentTime+t+0.3)})}catch(e){}try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}}
+function wReste(){if(!WT)return 0;return WT.run?Math.max(0,WT.rest-(Date.now()-WT.t0)/1000):WT.rest}
+function wAff(){const box=document.getElementById('wtimer');if(!box)return;box.hidden=!WT;if(!WT)return;const r=Math.ceil(wReste());
+  document.getElementById('wtt').textContent=Math.floor(r/60)+':'+String(r%60).padStart(2,'0');box.classList.toggle('fin',r<=0);
+  const g=document.getElementById('wtgo');if(g)g.textContent=WT.run?'Pause':(r<=0?'Recommencer':'Démarrer')}
+function wTimer(o){
+  if(o.dur){WT={dur:o.dur,rest:o.dur,run:false,t0:0};wAff();const b=document.getElementById('wtimer');if(b)b.scrollIntoView({block:'nearest',behavior:'smooth'});return}
+  if(!WT)return;
+  if(o.act==='x'){clearInterval(WT.h);WT=null;return wAff()}
+  if(o.act==='go'){if(WT.run){WT.rest=wReste();WT.run=false;clearInterval(WT.h)}else{if(WT.rest<=0)WT.rest=WT.dur;WT.t0=Date.now();WT.run=true;clearInterval(WT.h);
+      WT.h=setInterval(()=>{wAff();if(WT&&WT.run&&wReste()<=0){WT.run=false;WT.rest=0;clearInterval(WT.h);wBip();wAff()}},250)}}
+  if(o.act==='m'||o.act==='p'){const dl=o.act==='p'?30:-30;if(WT.run){WT.t0+=dl*1000}else WT.rest=Math.max(0,WT.rest+dl)}
+  wAff()}
+/* après chaque affichage, le minuteur reste affiché s'il tourne */
+new MutationObserver(()=>{if(WT&&document.getElementById('wtimer')&&document.getElementById('wtimer').hidden)wAff()}).observe(document.getElementById('main')||document.body,{childList:true,subtree:true});

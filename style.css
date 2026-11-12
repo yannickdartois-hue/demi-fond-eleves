@@ -355,3 +355,16 @@ header button.bseance .pt{position:absolute;right:-4px;top:-4px;width:14px;heigh
 
 /* Logo de l’en-tête = icône de l’écran d’accueil (même image que l’appli installée) */
 header img.logo{border-radius:10px;object-fit:cover;background:#fff}
+
+/* échauffement commun : une grande case par partie, détail replié, minuteur */
+.wpart{border:2px solid #d5dbe5;border-radius:14px;padding:8px;margin:8px 0;display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;background:#fff}
+.wpart.on{border-color:#16a34a;background:#f0fdf4}
+.wpart-bt{display:flex;gap:10px;align-items:center;text-align:left;border:0;background:none;font:inherit;color:inherit;padding:4px;min-height:56px;cursor:pointer}
+.wpart-c{flex:none;width:34px;height:34px;border-radius:9px;border:2px solid #94a3b8;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:#fff}
+.wpart.on .wpart-c{background:#16a34a;border-color:#16a34a}
+.wpart-min{border:2px solid #d5dbe5;background:#f8fafc;border-radius:10px;min-height:48px;min-width:58px;font:inherit;font-weight:700;cursor:pointer}
+.wdet{grid-column:1/-1}.wdet summary{font-size:14px;color:var(--acc,#b91c1c);font-weight:700}
+.wfoot{display:flex;flex-direction:column;gap:6px;margin:2px 0 6px 4px}.wfoot .wfoot-l{display:flex!important;flex-direction:row;align-items:center;gap:10px;margin:0}.wfoot .wfoot-l>b{min-width:70px}
+.wtimer{position:sticky;bottom:84px;z-index:30;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;background:#1c2128;color:#fff;border-radius:14px;padding:8px 10px;margin:6px 0}
+.wtimer-t{font-size:38px;font-weight:900;font-variant-numeric:tabular-nums;min-width:110px;text-align:center}
+.wtimer .chip{background:#fff;color:#1c2128}.wtimer.fin{background:#15803d}

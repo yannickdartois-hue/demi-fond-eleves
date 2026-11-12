@@ -395,7 +395,12 @@ document.addEventListener('click',async e=>{
     if(i>=0){x.splice(i,1);if(d.npc)delete d.npc[ds.np];saveS();return keepScroll(render)}
     /* « Passer » : on demande toujours pourquoi (le prof le voit dans le suivi) */
     const run=G.runners[V.ri||0];
-    modal(`<h2>Pourquoi ${esc(run.prenom)} ne fait pas cet exercice ?</h2><p class="muted small">Le prof verra la raison dans son suivi.</p><div class="npc">${Object.entries(NP_CAUSES).map(([k,l])=>`<button type="button" class="chip" data-npc="${k}" data-npk="${esc(ds.np)}">${esc(l)}</button>`).join('')}</div><button class="btn" data-act="closem">Annuler</button>`);return}
+    modal(`<h2>Pourquoi ${esc(run.prenom)} ne fait pas cet exercice ?</h2><p class="muted small">Le prof verra la raison dans son suivi.</p><div class="npc">${Object.entries(NP_CAUSES).map(([k,l])=>`<button type="button" class="chip" data-npc="${k}" data-npk="${esc(ds.np)}">${esc(l)}</button>`).join('')}</div>
+     <div id="npautre" hidden><label class="small">Autre raison, en quelques mots<input class="in" id="npo" maxlength="80" style="max-width:none"></label><button type="button" class="btn pri" data-npt="1" data-npk="${esc(ds.np)}">Valider</button></div>
+     <button class="btn" data-act="closem">Annuler</button>`);return}
+  if(ds.npc==='autre'&&V.tab==='seance'&&!ds.npt){const box=$('#npautre');if(box){box.hidden=false;const i=$('#npo');if(i)i.focus()}return}
+  if(ds.npt!==undefined&&V.tab==='seance'){const v=($('#npo')&&$('#npo').value||'').trim();if(!v){toast('Écris la raison, en quelques mots.');return}
+    const d=curD();const x=d.np=d.np||[];if(!x.includes(ds.npk))x.push(ds.npk);(d.npc=d.npc||{})[ds.npk]='autre:'+v.slice(0,80);closeModal();saveS();return keepScroll(render)}
   if(ds.npc!==undefined&&V.tab==='seance'){const d=curD();const x=d.np=d.np||[];if(!x.includes(ds.npk))x.push(ds.npk);(d.npc=d.npc||{})[ds.npk]=ds.npc;closeModal();saveS();return keepScroll(render)}
   if(ds.xc!==undefined){xcAct(ds.xc);return}
   if(ds.pls!==undefined){poulsLibre();return}

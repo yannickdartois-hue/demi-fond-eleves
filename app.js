@@ -391,7 +391,12 @@ document.addEventListener('click',async e=>{
   if(ds.wtim!==undefined||ds.wta!==undefined){wTimer(ds.wtim!==undefined?{dur:+ds.wtim}:{act:ds.wta});return}
   if(ds.sugg!==undefined&&V.tab==='seance'){const d=curD();const c=getPath(d,'bl.con')||'';if(c.includes(ds.sugg))setPath(d,'bl.con',c.replace(ds.sugg,'').replace(/^\s*[;·]\s*|\s*[;·]\s*$/g,'').replace(/\s*;\s*;\s*/,' ; '));else setPath(d,'bl.con',(c?c.trim()+' ; ':'')+ds.sugg);saveS();return keepScroll(render)}
   if(ds.tourn!==undefined&&V.tab==='seance'){V.ri=+ds.tourn;return keepScroll(render)}
-  if(ds.np!==undefined&&V.tab==='seance'){const d=curD();const x=d.np=d.np||[];const i=x.indexOf(ds.np);if(i>=0)x.splice(i,1);else x.push(ds.np);saveS();return keepScroll(render)}
+  if(ds.np!==undefined&&V.tab==='seance'){const d=curD();const x=d.np=d.np||[];const i=x.indexOf(ds.np);
+    if(i>=0){x.splice(i,1);if(d.npc)delete d.npc[ds.np];saveS();return keepScroll(render)}
+    /* « Passer » : on demande toujours pourquoi (le prof le voit dans le suivi) */
+    const run=G.runners[V.ri||0];
+    modal(`<h2>Pourquoi ${esc(run.prenom)} ne fait pas cet exercice ?</h2><p class="muted small">Le prof verra la raison dans son suivi.</p><div class="npc">${Object.entries(NP_CAUSES).map(([k,l])=>`<button type="button" class="chip" data-npc="${k}" data-npk="${esc(ds.np)}">${esc(l)}</button>`).join('')}</div><button class="btn" data-act="closem">Annuler</button>`);return}
+  if(ds.npc!==undefined&&V.tab==='seance'){const d=curD();const x=d.np=d.np||[];if(!x.includes(ds.npk))x.push(ds.npk);(d.npc=d.npc||{})[ds.npk]=ds.npc;closeModal();saveS();return keepScroll(render)}
   if(ds.xc!==undefined){xcAct(ds.xc);return}
   if(ds.pls!==undefined){poulsLibre();return}
   if(ds.rc!==undefined){recAct(ds.rc);return}

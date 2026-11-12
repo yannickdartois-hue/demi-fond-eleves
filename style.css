@@ -390,3 +390,5 @@ header img.logo{border-radius:10px;object-fit:cover;background:#fff}
 .poulscard b{font-size:20px;color:#be123c}.poulsgo{background:#e11d48;color:#fff;border:0;border-radius:14px;min-height:56px;font:inherit;font-size:19px;font-weight:900;cursor:pointer}
 @keyframes pulsec{50%{box-shadow:0 0 0 7px rgba(225,29,72,.16)}}
 .pouls-fab{position:fixed;right:14px;bottom:86px;z-index:35;background:#e11d48;color:#fff;border:0;border-radius:99px;padding:14px 18px;font:inherit;font-weight:900;font-size:17px;box-shadow:0 6px 16px rgba(225,29,72,.4);cursor:pointer}
+
+.npc{display:flex;flex-direction:column;gap:8px;margin:10px 0}.npc .chip{min-height:52px;font-size:17px;text-align:left;justify-content:flex-start}

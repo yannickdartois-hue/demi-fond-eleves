@@ -178,6 +178,7 @@ const npKey=B=>B[0]+'|'+(B[1]||'');
 const ENSEMBLE=['al4','ra','ra2'];                       /* les deux coureurs courent en même temps */
 const NO_DECO=['warm','warmT','mwarm','grp','txt','pf','pfT','situe','pe','rep','mine','pfin','mpf','mpe','afl1','afl1T','ec2','vup','mnote','at'];
 const COUL=['a','b','c'];
+const NP_CAUSES={blesse:'blessé(e) ou douleur',malade:'malade, pas en forme',temps:'pas eu le temps',meteo:'pluie, météo',materiel:'piste ou matériel indisponible',prof:'consigne du prof',autre:'autre raison'};
 function roleLine(w,b,ri){const n=b.runners.map(r=>r.prenom),moi=n[ri]||'',autre=n[(ri+1)%n.length]||'ton binôme';
   if(w==='C')return `<p class="roleline">${esc(autre)} regarde ${esc(moi)} courir et note pour ${['F'].includes((b.runners[ri]||{}).sexe)?'elle':'lui'} : ${esc(moi)} n’écrit rien pendant sa course.</p>`;
   if(w==='CR')return `<p class="roleline">${esc(autre)} compte pendant la course, ${esc(moi)} complète juste après.</p>`;
@@ -192,7 +193,8 @@ function decorate(html,B,s,d,b,ri,ens){
   else if(n>1){const nx=(ri+1)%n,me=b.runners[ri],ot=b.runners[nx];
     top=`<div class="tour t${COUL[ri]||'a'}"><b>🏃 C’est ${esc(me.prenom)} qui court</b><span>${esc(ot.prenom)} ${w==='C'?'le suit et note':'compte pendant la course'}</span><button type="button" class="tour-sw" data-tourn="${nx}">Au tour de ${esc(ot.prenom)} ▶</button></div><p class="modeline"><span class="tag mode">🔁 À tour de rôle</span></p>`}
   const i=html.indexOf('</h3>');if(i<0)return html;
-  html=html.slice(0,i+5)+top+(ens?'':roleLine(w,b,ri))+xchr()+(np?'<p class="npline">⏭ Marqué <b>non réalisé</b> : rien à remplir.</p>':'')+html.slice(i+5);
+  const cause=np&&d.npc&&d.npc[npKey(B)];
+  html=html.slice(0,i+5)+top+(ens?'':roleLine(w,b,ri))+xchr()+(np?`<p class="npline">⏭ Marqué <b>non réalisé</b>${cause?' · cause : <b>'+esc(NP_CAUSES[cause]||cause)+'</b>':''}. Rien à remplir.</p>`:'')+html.slice(i+5);
   const k=html.lastIndexOf('</section>');
   return html.slice(0,k)+`<button type="button" class="btn np ${np?'on':''}" data-np="${esc(npKey(B))}">${np?'↩ Finalement réalisé':'⏭ Passer / non réalisé'}</button>`+html.slice(k)}
 function ensembleView(B,s,b){

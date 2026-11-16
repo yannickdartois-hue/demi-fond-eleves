@@ -258,9 +258,9 @@ const oneMode=()=>DB.opts.one!=null?DB.opts.one:window.innerWidth<600;
 function stepsBar(s,d){const L=stepList(s);const n=L.filter(B=>stepDone(B,d)).length;const one=oneMode();if(V.cur==null||V.cur>=L.length)V.cur=0;
   return `<nav class="steps" aria-label="Étapes de la séance"><div class="sbar">${L.map((B,i)=>one?`<button class="${stepDone(B,d)?'ok':''} ${V.cur===i?'cur':''}" data-cur="${i}" aria-label="Étape ${i+1}">${i+1}</button>`:`<a href="#st-${i}" class="${stepDone(B,d)?'ok':''}" aria-label="Étape ${i+1}"><span>${i+1}</span></a>`).join('')}</div>
    <p><b>${n} / ${L.length}</b> étapes remplies${n===L.length&&L.length?(V.ph==='fin'?' : envoie la séance au prof':' : à la fin, passe au bilan'):''} <button class="lnk small" data-act="onetog">${one?'Tout afficher':'Une étape à la fois'}</button></p></nav>`}
-/* v2.1 : plot atteint au 36"/24" choisi dans une liste (12 à 25 par 0,5 ; en dessous, groupe « moins de 12 » en bas de liste) */
+/* v2.1 : plot atteint au 36"/24" choisi dans une liste (12 à 25 par 0,5 ; de 6 à 11,5 : groupe « moins de 12 » en bas de liste) */
 function plotSel(path,val){const v=num(val),o=x=>{const t=String(x).replace('.',',');return `<option value="${t}"${v!=null&&Math.abs(v-x)<0.01?' selected':''}>${t}</option>`};
-  const hi=[],lo=[];for(let x=12;x<=25;x+=0.5)hi.push(o(x));for(let x=8;x<12;x+=0.5)lo.push(o(x));
+  const hi=[],lo=[];for(let x=12;x<=25;x+=0.5)hi.push(o(x));for(let x=6;x<12;x+=0.5)lo.push(o(x));
   return `<select class="in plotsel" data-p="${path}" data-rr="1" aria-label="Plot atteint"><option value=""${v==null?' selected':''}>plot ?</option>${hi.join('')}<optgroup label="Moins de 12 km/h">${lo.join('')}</optgroup></select>`}
 function stepWrap(html,B,s,d){if(RESULT.includes(B[0]))return html;const L=stepList(s);const i=L.findIndex(x=>x===B||(x[0]===B[0]&&x[1]===B[1]));if(i<0)return html;const ok=stepDone(B,d);
   /* v2.0 : le numéro reste toujours visible (vert + ✓ quand l'étape est remplie) ; les numéros écrits en dur dans les titres sont retirés */

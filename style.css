@@ -465,3 +465,4 @@ html body .rep span{color:var(--nav-fonce)}
 :root[data-theme="dark"] .bilan .btit.coach{background:#172554;color:#dbeafe}:root[data-theme="dark"] .bilan .btit.moi{background:#431407;color:#ffedd5}
 .bilan .blég{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 0;font-size:14px;font-weight:700}
 .bilan .blég span{padding:3px 10px;border-radius:99px;border-left:4px solid}.bilan .blég .coach{background:#e0ecff;border-color:#1d4ed8;color:#172554}.bilan .blég .moi{background:#ffedd5;border-color:#c2410c;color:#431407}
+.bilan .blég span{border-left:0;border:1.5px solid}

@@ -409,3 +409,4 @@ header img.logo{border-radius:10px;object-fit:cover;background:#fff}
 .btn.fini{display:block;width:100%;margin-top:12px}
 details.obj>summary{cursor:pointer;list-style:none;padding:2px 0}details.obj>summary::-webkit-details-marker{display:none}
 details.obj>summary::before{content:'▸ ';color:#6b7280}details.obj[open]>summary::before{content:'▾ '}
+.plotsel{font-size:20px;font-weight:800;padding:8px 6px;min-width:88px;text-align:center;border-radius:10px}

@@ -258,6 +258,10 @@ const oneMode=()=>DB.opts.one!=null?DB.opts.one:window.innerWidth<600;
 function stepsBar(s,d){const L=stepList(s);const n=L.filter(B=>stepDone(B,d)).length;const one=oneMode();if(V.cur==null||V.cur>=L.length)V.cur=0;
   return `<nav class="steps" aria-label="Étapes de la séance"><div class="sbar">${L.map((B,i)=>one?`<button class="${stepDone(B,d)?'ok':''} ${V.cur===i?'cur':''}" data-cur="${i}" aria-label="Étape ${i+1}">${i+1}</button>`:`<a href="#st-${i}" class="${stepDone(B,d)?'ok':''}" aria-label="Étape ${i+1}"><span>${i+1}</span></a>`).join('')}</div>
    <p><b>${n} / ${L.length}</b> étapes remplies${n===L.length&&L.length?(V.ph==='fin'?' : envoie la séance au prof':' : à la fin, passe au bilan'):''} <button class="lnk small" data-act="onetog">${one?'Tout afficher':'Une étape à la fois'}</button></p></nav>`}
+/* v2.1 : plot atteint au 36"/24" choisi dans une liste (12 à 25 par 0,5 ; en dessous, groupe « moins de 12 » en bas de liste) */
+function plotSel(path,val){const v=num(val),o=x=>{const t=String(x).replace('.',',');return `<option value="${t}"${v!=null&&Math.abs(v-x)<0.01?' selected':''}>${t}</option>`};
+  const hi=[],lo=[];for(let x=12;x<=25;x+=0.5)hi.push(o(x));for(let x=8;x<12;x+=0.5)lo.push(o(x));
+  return `<select class="in plotsel" data-p="${path}" data-rr="1" aria-label="Plot atteint"><option value=""${v==null?' selected':''}>plot ?</option>${hi.join('')}<optgroup label="Moins de 12 km/h">${lo.join('')}</optgroup></select>`}
 function stepWrap(html,B,s,d){if(RESULT.includes(B[0]))return html;const L=stepList(s);const i=L.findIndex(x=>x===B||(x[0]===B[0]&&x[1]===B[1]));if(i<0)return html;const ok=stepDone(B,d);
   /* v2.0 : le numéro reste toujours visible (vert + ✓ quand l'étape est remplie) ; les numéros écrits en dur dans les titres sont retirés */
   const k0=npKey(B),plie=(d.pl||[]).includes(k0)||((d.np||[]).includes(k0)&&!(d.npo||[]).includes(k0));
@@ -448,7 +452,7 @@ function blockView(b,s,run,d,vma){
     return `<section class="card"><h3>1 · Varier les allures et coacher ${who('C')}</h3>${rows}</section>`}
   if(ty==='t3624'||ty==='rt'){const key=ty==='t3624'?'ts':'rt';const a=d[key]||[];const vt=testVma(a);
     return `<section class="card"><h3>${ty==='rt'?'Re-test VMA 36"/24" (début de séance)':'Test VMA 36"/24"'} ${who('C')}</h3><p class="muted small">À chaque coup de sifflet (toutes les minutes), note le plot atteint : plot n° 12 = 12 km/h, entre deux plots = ,5. 36" à fond mais régulier, 24" de repos sur place.</p>
-     <div class="reps">${[0,1,2,3,4,5,6,7,8,9].map(i=>`<div class="rep"><span>${i+1}’</span>${stp(`${key}.${i}`,d,{step:0.5,min:5,max:26,start:i?(num(a[i-1])||10):10,chk:CHK.plt})}</div>`).join('')}</div>
+     <div class="reps">${[0,1,2,3,4,5,6,7,8,9].map(i=>`<div class="rep"><span>${i+1}’</span>${plotSel(`${key}.${i}`,a[i])}</div>`).join('')}</div>
      <div class="outs">${out('Minutes remplies',a.filter(x=>num(x)!=null).length+' / 10')}${out(ty==='rt'?'Ma nouvelle VMA *':'Ma VMA (somme ÷ 10) *',vt?fV(vt)+' km/h':'–','hi')}</div>
      <p class="small"><b>*</b> Attention : ce test peut avoir tendance à surestimer très légèrement la VMA.</p>
      <p class="muted small">Ces données sont approximatives et évolutives : elles servent à planifier la charge de travail.</p></section>`}

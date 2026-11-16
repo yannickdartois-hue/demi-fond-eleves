@@ -497,7 +497,7 @@ document.addEventListener('input',e=>{const el=e.target;if(!G)return;
   if(['cvma','cpct','csec','cdist'].includes(el.id)){const v=num(el.value);if(el.id==='cvma')CALC.vma=v;if(el.id==='cpct')CALC.pct=v;if(el.id==='csec')CALC.sec=v;if(el.id==='cdist')CALC.dist=v;
     document.querySelectorAll('[data-cpct]').forEach(b=>b.classList.toggle('on',+b.dataset.cpct===CALC.pct));return calcOut()}
   if(el.dataset.p&&V.tab==='seance'){const r=G.runners[el.dataset.rn!=null?+el.dataset.rn:(V.ri||0)],d=sd(r,V.sid);setPath(d,el.dataset.p,el.value);fixP(d);
-    if(el.dataset.p==='vj'){const m=vmaOf(r,V.sid),x=num(el.value);if(x==null||(m!=null&&Math.abs(x-m)<0.05))delete d.vj}saveS()}
+    if(el.dataset.p==='vj'){const m=vmaOf(r,V.sid),x=num(el.value);if(x==null||(m!=null&&Math.abs(x-m)<0.05))delete d.vj}saveS();if(el.dataset.rr)keepScroll(render)}
   if(el.dataset.vm!==undefined){G.runners[+el.dataset.vm].vmaManuelle=el.value;save()}
 });
 document.addEventListener('change',async e=>{const el=e.target;

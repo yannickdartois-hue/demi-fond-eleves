@@ -492,6 +492,8 @@ function validerGroupe(){
   b.runners=rs.map(r=>{const o=old.find(x=>norm(x.full)===norm(r.full));if(o){o.sexe=r.sexe;return o}return {id:uid(),full:r.full,prenom:prenomDe(r.full),nom:nomDe(r.full),sexe:r.sexe,vmaManuelle:'',seances:{}}});
   V.ri=0;V.tab='seance';save();render();window.scrollTo(0,0);toast('Groupe enregistré.');
 }
+/* v3.0 : les textes d'explication sont coupés à 2 lignes ; toucher pour lire la suite */
+document.addEventListener('click',e=>{const p=e.target.closest('section.step p.muted.small');if(p)p.classList.toggle('ouvert')});
 document.addEventListener('keydown',ev=>{if(ev.target&&ev.target.id==='code'&&ev.key==='Enter'){ev.preventDefault();validerCode()}});
 document.addEventListener('input',e=>{const el=e.target;if(!G)return;
   if(['cvma','cpct','csec','cdist'].includes(el.id)){const v=num(el.value);if(el.id==='cvma')CALC.vma=v;if(el.id==='cpct')CALC.pct=v;if(el.id==='csec')CALC.sec=v;if(el.id==='cdist')CALC.dist=v;

@@ -194,12 +194,12 @@ function decorate(html,B,s,d,b,ri,ens){
   let top='';
   if(ens)top=`<p class="modeline"><span class="tag mode">👥 Ensemble</span> Vous courez en même temps : chacun a sa colonne.</p>`;
   else if(n>1){const nx=(ri+1)%n,me=b.runners[ri],ot=b.runners[nx];
-    top=`<div class="tour t${COUL[ri]||'a'}"><b>🏃 C’est ${esc(me.prenom)} qui court</b><span>${esc(ot.prenom)} ${w==='C'?'le suit et note':'compte pendant la course'}</span><button type="button" class="tour-sw" data-tourn="${nx}">Au tour de ${esc(ot.prenom)} ▶</button></div><p class="modeline"><span class="tag mode">🔁 À tour de rôle</span></p>`}
+    top=`<div class="tour mini t${COUL[ri]||'a'}"><span>🏃 <b>${esc(me.prenom)}</b> court · ${esc(ot.prenom)} ${w==='C'?'note':'compte'}</span><button type="button" class="tour-sw" data-tourn="${nx}">Au tour de ${esc(ot.prenom)} ▶</button></div>`}
   const i=html.indexOf('</h3>');if(i<0)return html;
   const cause=np&&d.npc&&d.npc[npKey(B)];
-  html=html.slice(0,i+5)+top+(ens?'':roleLine(w,b,ri))+xchr()+(np?`<p class="npline">⏭ Marqué <b>non réalisé</b>${cause?' · cause : <b>'+esc(NP_TXT(cause))+'</b>':''}. Rien à remplir.</p>`:'')+html.slice(i+5);
+  html=html.slice(0,i+5)+top+(np?`<p class="npline">⏭ Marqué <b>non réalisé</b>${cause?' · cause : <b>'+esc(NP_TXT(cause))+'</b>':''}. Rien à remplir.</p>`:'')+html.slice(i+5);
   const k=html.lastIndexOf('</section>');
-  return html.slice(0,k)+`<button type="button" class="btn np ${np?'on':''}" data-np="${esc(npKey(B))}">${np?'↩ Finalement réalisé':'⏭ Passer / non réalisé'}</button>`+html.slice(k)}
+  return html.slice(0,k)+`<button type="button" class="np lnkbtn ${np?'on':''}" data-np="${esc(npKey(B))}">${np?'↩ Finalement réalisé':'⏭ Passer / non réalisé'}</button>`+html.slice(k)}
 function ensembleView(B,s,b){
   const parts=b.runners.map((r,i)=>{const rs=sessFor(r,s.id),M=isM(r),d=sd(r,rs.id),vM=M?vmmOf(r,rs.id):vmaOf(r,rs.id),v=M?vM:(num(d.vj)||vM);
     let h=withHelp(blockView(B,rs,r,d,v),B[0],B,rs).replace(/data-(p|stp|set|tog)="/g,`data-rn="${i}" data-$1="`);return {r,i,h}});
@@ -209,7 +209,8 @@ function ensembleView(B,s,b){
 function sessView(){
   const b=curBin(),ri=V.ri||0,run=b.runners[ri],s=sessFor(run,V.sid),M=isM(run),d=sd(run,s.id),vMes=M?vmmOf(run,s.id):vmaOf(run,s.id),vma=M?vMes:(num(d.vj)||vMes);
   const [t,n]=tenus(s.id,Object.assign(ctx(run,s.id,d),{_v:vma},M?{_mar:1}:{}));const co=coachOf(b,ri,s.id);
-  const head=`<section class="lanehead sess ${s.id[0]==='t'?'t':'s'}"><span class="ln">${s.n}</span><div><b>${esc(s.t)}</b><span><strong>Je réussis si</strong> ${esc(s.goal)}</span></div></section>${presView(b,s.id)}
+  /* v3.0 : en-tête compact ; « Je réussis si » replié (toucher pour le lire) */
+  const head=`<section class="lanehead sess compact ${s.id[0]==='t'?'t':'s'}"><span class="ln">${s.n}</span><div><b>${esc(s.t)}</b><details class="goal"><summary>🎯 Je réussis si…</summary><p>${esc(s.goal)}</p></details></div></section>${presView(b,s.id)}
   <div class="seg big">${b.runners.map((r,i)=>{const st=(r.seances&&r.seances[s.id]||{}).st;return `<button class="chip ${i===ri?'on':''}" data-ri="${i}">${esc(r.prenom)} ${st?'('+ST_TXT[st]+')':isM(r)?'marche':'court'}</button>`}).join('')}</div>`;
   const ph=V.ph==='fin'?'fin':'piste';
   const qrBtn='<button class="btn pri big full" data-act="finseance">Envoyer la séance au prof</button>';
@@ -225,8 +226,8 @@ function sessView(){
   ${stepsBar(s,d)}${blocs.map(B=>stepWrap(withHelp(blockView(B,s,run,d,vma),B[0],B,s),B,s,d)).join('')}
   ${stepWrap(withHelp(bilanView(s,run,d,t,n,vma),'bilan',[],s),['bilan'],s,d)}`+qrBtn;
   const obj=M?'':objCard(s,run,d,vMes,vma);
-  return head+phases+`<div class="coachline ${co.need?'warn':''}"><span>Coach : <b>${co.n?esc(co.n):'à choisir'}</b>${co.rep?` <span class="tag">remplaçant · ${esc(WHY_TXT[co.why]||'')}</span>`:''}</span>
-   <button class="btn sm danger" data-act="chcoach">⚠ ${co.rep?'Modifier le coach':'Changer de coach (exceptionnel)'}</button></div>
+  return head+`<div class="coachline mini ${co.need?'warn':''}"><span>Coach de ${esc(run.prenom)} : <b>${co.n?esc(co.n):'à choisir'}</b>${co.rep?` <span class="tag">remplaçant · ${esc(WHY_TXT[co.why]||'')}</span>`:''}</span>
+   <button class="lnk small" data-act="chcoach">${co.rep?'modifier le coach':'changer de coach'}</button></div>
   ${co.need?'<p class="warn small center">Ton coach habituel est absent : choisis un coach remplaçant avant de courir.</p>':''}
   ${d.ad?`<section class="card thin adapt"><p><b>Pratique adaptée</b> (avis médical, asthme, reprise…) : tu peux alterner course et marche, par exemple 1’ de course et 30" de marche. Ton but : la régularité, pas la distance. Tolérances élargies : 3’ à 20 m, 1’30 en zone 2, temps à 4 s.</p></section>`:''}
   ${M?SECU_M:''}
@@ -235,6 +236,7 @@ function sessView(){
   ${blocs.map(B=>{const ens=ENSEMBLE.includes(B[0])&&b.runners.length>1;const h=ens?ensembleView(B,s,b):withHelp(blockView(B,s,run,d,vma),B[0],B,s);return stepWrap(decorate(h,B,s,d,b,ri,ens),B,s,d)}).join('')}
   ${b.runners.length>1?`<style>body{background:var(--run-${COUL[ri]||'a'})!important}</style>`:''}
   <button type="button" class="pouls-fab" data-pls="1" aria-label="Prendre mon pouls">❤ Pouls</button>
+  <div class="xchr flotte" aria-label="Chronomètre"><b class="xchr-t">0:00,0</b><button type="button" class="chip sm" data-xc="go" aria-label="Démarrer ou arrêter">▶ ⏸</button><button type="button" class="chip sm" data-xc="r" aria-label="Remettre à zéro">⟲</button></div>
   ${M?`<div class="vmaline"><span>Ma vitesse de marche : <b>${vma?fV(vma)+' km/h':'à mesurer en '+(s.id[0]==='t'?'T1':'S1')}</b></span></div>`:`<div class="vmaline"><span>${s.id[0]==='s'?'Ma vitesse sur 3’':'VMA utilisée'} : <b>${vma?fV(vma)+' km/h':'à mesurer en '+(s.id[0]==='t'?'T2':'S1')}</b>${s.id[0]==='s'&&vma?' <span class="muted">· VMA estimée '+fV(vma*VMA_3)+'</span>':''}</span><button class="btn sm" data-act="calc">🧮 Calculer</button></div>`}
   ${calcAvant?'':obj}
   ${(x=>x?`<div class="vmaline"><span>📏 Distance de la séance : <b>${x} m</b> <span class="muted">(échauffement compris)</span></span></div>`:'')(distSeance(run,s.id))}
@@ -455,7 +457,7 @@ function blockView(b,s,run,d,vma){
      <div class="reps">${[0,1,2,3,4,5,6,7,8,9].map(i=>`<div class="rep"><span>${i+1}’</span>${plotSel(`${key}.${i}`,a[i])}</div>`).join('')}</div>
      <div class="outs">${out('Minutes remplies',a.filter(x=>num(x)!=null).length+' / 10')}${out(ty==='rt'?'Ma nouvelle VMA *':'Ma VMA (somme ÷ 10) *',vt?fV(vt)+' km/h':'–','hi')}</div>
      <p class="small"><b>*</b> Attention : ce test peut avoir tendance à surestimer très légèrement la VMA.</p>
-     <p class="muted small">Ces données sont approximatives et évolutives : elles servent à planifier la charge de travail.</p></section>`}
+</section>`}
   if(ty==='ser'){const rows=d[a1]||[];
     return `<section class="card"><h3>${esc(a2)} ${who('C')}</h3><p class="muted small">En alternance dans le binôme : la course de l’un est la récupération de l’autre. Temps prévu calculé avec ${s.id[0]==='s'?'ta vitesse sur 3’ (ou ta VMA estimée, quand c’est indiqué)':'ta VMA'}.</p>
      ${a3.map((r,i)=>{const pv=prevu(r[0],pctRow(r),vma);const t=parseT(rows[i]&&rows[i].tr);const ok=t!=null&&pv?Math.abs(t-pv)<=2:null;

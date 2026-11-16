@@ -433,3 +433,20 @@ details.goal summary::-webkit-details-marker{display:none}details.goal p{margin:
  details.goal summary{min-height:30px;padding-top:4px;font-size:13.5px}
  .presline{flex-wrap:nowrap;font-size:13.5px}.presline .lnk{font-size:13.5px;white-space:nowrap}
  .seg.big .chip{min-height:46px;font-size:16px}.coachline.mini{font-size:14px;margin:2px 0}}
+/* v3.0 · point 4 : le rouge de l'activité reste pour l'identité (bandeau, pastille de séance) et les alertes ;
+   navigation et résultats en ardoise neutre, étapes faites en vert */
+:root{--nav:#334155;--nav-fonce:#1e293b;--nav-pale:#e2e8f0;--fait-v:#15803d}
+:root[data-theme="dark"]{--nav:#94a3b8;--nav-fonce:#cbd5e1;--nav-pale:#1f2937;--fait-v:#22c55e}
+html body .seg.big .chip.on,html body .chip.on:not(.T):not(.L):not(.P):not([class*=" r"]){background:var(--nav-fonce);border-color:var(--nav-fonce);color:#fff;box-shadow:none}
+html body .sbar{background:var(--nav)}
+html body .sbar a.ok,html body .sbar button.ok{background:#dcfce7;color:var(--fait-v)}
+html body .stepn{background:var(--nav)}
+html body .step.done .stepn{background:var(--fait-v)}
+html body .out.hi,html body[data-cy="T"] .out.hi{background:var(--nav-fonce);color:#fff}
+html body .help summary,html body .who{background:var(--nav-pale);color:var(--nav-fonce)}
+html body .help[open] summary{background:var(--nav-fonce);color:#fff}
+html body .lnk,html body .coachline.mini .lnk{color:var(--nav-fonce)}
+html body .presline .lnk{color:var(--warn)}
+html body .btn.pri.fini{background:var(--fait-v);border-color:var(--fait-v);color:#fff}
+html body .step.done{box-shadow:var(--sh),inset 4px 0 0 var(--fait-v)}
+html body .rep span{color:var(--nav-fonce)}

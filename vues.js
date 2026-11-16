@@ -449,7 +449,8 @@ function blockView(b,s,run,d,vma){
   if(ty==='t3624'||ty==='rt'){const key=ty==='t3624'?'ts':'rt';const a=d[key]||[];const vt=testVma(a);
     return `<section class="card"><h3>${ty==='rt'?'Re-test VMA 36"/24" (début de séance)':'Test VMA 36"/24"'} ${who('C')}</h3><p class="muted small">À chaque coup de sifflet (toutes les minutes), note le plot atteint : plot n° 12 = 12 km/h, entre deux plots = ,5. 36" à fond mais régulier, 24" de repos sur place.</p>
      <div class="reps">${[0,1,2,3,4,5,6,7,8,9].map(i=>`<div class="rep"><span>${i+1}’</span>${stp(`${key}.${i}`,d,{step:0.5,min:5,max:26,start:i?(num(a[i-1])||10):10,chk:CHK.plt})}</div>`).join('')}</div>
-     <div class="outs">${out('Minutes remplies',a.filter(x=>num(x)!=null).length+' / 10')}${out(ty==='rt'?'Ma nouvelle VMA':'Ma VMA (somme ÷ 10)',vt?fV(vt)+' km/h':'–','hi')}</div>
+     <div class="outs">${out('Minutes remplies',a.filter(x=>num(x)!=null).length+' / 10')}${out(ty==='rt'?'Ma nouvelle VMA *':'Ma VMA (somme ÷ 10) *',vt?fV(vt)+' km/h':'–','hi')}</div>
+     <p class="small"><b>*</b> Attention : ce test peut avoir tendance à surestimer très légèrement la VMA.</p>
      <p class="muted small">Ces données sont approximatives et évolutives : elles servent à planifier la charge de travail.</p></section>`}
   if(ty==='ser'){const rows=d[a1]||[];
     return `<section class="card"><h3>${esc(a2)} ${who('C')}</h3><p class="muted small">En alternance dans le binôme : la course de l’un est la récupération de l’autre. Temps prévu calculé avec ${s.id[0]==='s'?'ta vitesse sur 3’ (ou ta VMA estimée, quand c’est indiqué)':'ta VMA'}.</p>

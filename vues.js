@@ -529,7 +529,8 @@ function bilanView(s,run,d,t,n,v){
   const SEC=s.id[0]==='s',ok75=n&&t/n>=.75;
   const reuL=(ok75?['J’ai tenu mes projets']:[]).concat(['J’ai été régulier','J’ai bien géré mon départ','J’ai couru sans m’arrêter','J’ai bien coaché mon binôme']),gen=['Partir moins vite','Être plus régulier','Écouter les temps de passage','Accélérer à la fin'];
   const conL=sg.concat(gen).slice(0,6),nxL=gen.concat(['Mieux coacher mon binôme']);
-  return `<section class="card bilan"><h3>Bilan${SEC?' <span class="muted small">· 1 minute, tout se touche</span>':''}</h3>
+  /* v3.1 : chaque partie du bilan a un vrai titre (bandeau bleu = le coach remplit, orange = je remplis) */
+  return bilanTitres(`<section class="card bilan"><h3>Bilan${SEC?' <span class="muted small">· 1 minute, tout se touche</span>':''}</h3>
    <p class="small"><b>⏱ Le coach a vu</b></p><div class="checks">${s.crit.map((c,i)=>`<button class="chk ${cr[i]?'on':''}" data-set="bl.cr.${i}" data-v="${cr[i]?'':'1'}">${cr[i]?'☑':'☐'} ${esc(c)}</button>`).join('')}</div>
    ${voit('ob',s)?`<details class="help"${Object.keys(ob).length?' open':''}><summary>⏱ Ta foulée vue par le coach${neuf('ob',s)} <span class="muted">(regarde-le courir 1 tour : ✓ ou à revoir)</span></summary><div class="obs">${FOULEE.map((f,i)=>`<div class="row wrap"><span class="f1 small">${esc(f[0])}</span>${segv('bl.ob.'+i,d,[['1','✓'],['0','à revoir']])}</div>`).join('')}</div></details>`:''}
    ${SEC?`<p class="small"><b>⏱ Ta réussite</b> <span class="muted">(touche ce qui est vrai)</span></p>${puces('bl.reu',reuL,d)}${autre('bl.reu',d)}
@@ -543,8 +544,9 @@ function bilanView(s,run,d,t,n,v){
    ${true?'':`<details class="help"><summary>FC (facultatif)</summary><div><label>FC en fin de série (/min), pouls 15" × 4 ${stp('bl.fc',d,{step:4,min:60,max:240,start:160,chk:CHK.fc})}</label></div></details>`}
    <div><p class="small"><b>✎ Mon rôle aujourd’hui</b></p>${segv('bl.role',d,[['coach','coach'],['juge','juge-chrono']])}</div>
    <div class="outs">${out('Projets tenus aujourd’hui',n?t+' / '+n:'–','hi')}</div>
-   ${voit('nx',s)?(SEC?`<p class="small"><b>✎ La prochaine fois, je…</b>${neuf('nx',s)}</p>${puces('bl.nx',nxL,d)}${autre('bl.nx',d)}`:`<p class="small"><b>✎ La prochaine fois, je…</b>${neuf('nx',s)}</p>${puces('bl.nx',nxL,d)}<label>${txt('bl.nx',d)}</label>`):''}</section>`;
+   ${voit('nx',s)?(SEC?`<p class="small"><b>✎ La prochaine fois, je…</b>${neuf('nx',s)}</p>${puces('bl.nx',nxL,d)}${autre('bl.nx',d)}`:`<p class="small"><b>✎ La prochaine fois, je…</b>${neuf('nx',s)}</p>${puces('bl.nx',nxL,d)}<label>${txt('bl.nx',d)}</label>`):''}</section>`);
 }
+const bilanTitres=h=>h.replace('</h3>','</h3><p class="blég"><span class="coach">⏱ le coach remplit</span><span class="moi">✎ je remplis</span></p>').replace(/<p class="small"><b>⏱ /g,'<p class="btit coach"><b>⏱ ').replace(/<p class="small"><b>✎ /g,'<p class="btit moi"><b>✎ ').replace(/<p class="small"><b>💡 /g,'<p class="btit moi"><b>💡 ');
 
 /* ---------- compteur et chrono en direct (coach) ---------- */
 let LIVE=null;

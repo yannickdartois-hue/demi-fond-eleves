@@ -450,3 +450,18 @@ html body .presline .lnk{color:var(--warn)}
 html body .btn.pri.fini{background:var(--fait-v);border-color:var(--fait-v);color:#fff}
 html body .step.done{box-shadow:var(--sh),inset 4px 0 0 var(--fait-v)}
 html body .rep span{color:var(--nav-fonce)}
+
+/* v3.1 : bilan de séance lisible — titres en bandeau, choix en 2 colonnes */
+.bilan .btit{display:block;margin:22px -4px 10px;padding:9px 12px;border-radius:10px;font-size:17px;line-height:1.3;border-left:6px solid}
+.bilan .btit b{font-size:17.5px;font-weight:900}.bilan .btit .muted{font-size:14px;font-weight:600}
+.bilan .btit.coach{background:#e0ecff;border-color:#1d4ed8;color:#172554}.bilan .btit.coach .muted{color:#1e3a8a}
+.bilan .btit.moi{background:#ffedd5;border-color:#c2410c;color:#431407}.bilan .btit.moi .muted{color:#7c2d12}
+.bilan > .btit:first-of-type{margin-top:10px}
+.bilan .sugg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.bilan .sugg .chip.sg{margin:0;text-align:left;justify-content:flex-start;background:var(--card);border:1.5px solid var(--line);min-height:48px;white-space:normal}
+.bilan .sugg .chip.sg.on{background:#dcfce7;border-color:#15803d;color:#14532d}
+.bilan .outs{margin-top:18px}
+@media (max-width:560px){.bilan .sugg{grid-template-columns:1fr}}
+:root[data-theme="dark"] .bilan .btit.coach{background:#172554;color:#dbeafe}:root[data-theme="dark"] .bilan .btit.moi{background:#431407;color:#ffedd5}
+.bilan .blég{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 0;font-size:14px;font-weight:700}
+.bilan .blég span{padding:3px 10px;border-radius:99px;border-left:4px solid}.bilan .blég .coach{background:#e0ecff;border-color:#1d4ed8;color:#172554}.bilan .blég .moi{background:#ffedd5;border-color:#c2410c;color:#431407}

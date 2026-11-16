@@ -398,3 +398,14 @@ header img.logo{border-radius:10px;object-fit:cover;background:#fff}
 .modal .col{display:flex;flex-direction:column;gap:10px;margin-top:10px}
 .rpe.r5{grid-template-columns:repeat(5,1fr)}.rpe.r5 .chip{font-size:15px;padding:10px 0}
 @media (max-width:560px){.rpe.r5{grid-template-columns:repeat(5,1fr)}}
+
+/* v2.0 : étapes repliées, numéro toujours visible */
+.stepn{position:relative}.stepok{position:absolute;right:-7px;top:-7px;width:18px;height:18px;border-radius:50%;background:#15803d;color:#fff;font:900 11px/18px system-ui,sans-serif;font-style:normal;text-align:center;box-shadow:0 0 0 2px #fff}
+.step.plie{padding:0;overflow:hidden}
+.pliel{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.pliet{flex:1;min-width:0;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plier{flex:none;background:#ecfdf5;color:#065f46;border-radius:8px;padding:3px 8px;font-size:15px}
+.pliee{flex:none;color:#6b7280}
+.btn.fini{display:block;width:100%;margin-top:12px}
+details.obj>summary{cursor:pointer;list-style:none;padding:2px 0}details.obj>summary::-webkit-details-marker{display:none}
+details.obj>summary::before{content:'▸ ';color:#6b7280}details.obj[open]>summary::before{content:'▾ '}

@@ -3,7 +3,8 @@ window.EPS_AIDE={appli:'Demi-fond · Élève',bouton:false,publics:[
 {id:'eleve',titre:'Élève',chapitres:[
 {t:'Échauffement, vitesse sur 3’, distance',html:`<ul>
 <li><b>Échauffement</b> (chaque séance) : cardio jusqu’aux 3 signes, articulaire de bas en haut, 4 étirements actifs-dynamiques, 3 exercices de renforcement, 4 gammes au choix dans le catalogue illustré, puis accélérations et passage à l’allure du jour. Touche une image pour la cocher.</li>
-<li><b>Seconde</b> : le test de 3’ à fond (S2) donne <b>ta vitesse sur 3’</b> (distance ÷ 50), qui règle tes cibles d’épreuve, et <b>ta VMA estimée</b> (÷ 58), qui règle tes récupérations et certaines séries.</li>
+<li><b>Seconde</b> : le <b>test 36"/24"</b> (S2) donne <b>ta VMA</b> (moyenne des 10 plots), qui règle tes récupérations et tes séries. Ta <b>vitesse sur 3’</b>, qui règle tes cibles d’épreuve, en est déduite (VMA ÷ 0,86), puis remplacée dès la S4 par ton vrai 3’ couru en S3.</li>
+<li><b>Une étape à la fois</b> : quand une étape est finie, touche <b>« ✓ Étape terminée »</b> : elle se replie en une ligne (numéro, titre, résultat). Touche la ligne pour la rouvrir.</li>
 <li>Les séries courtes se font <b>en alternance</b> dans le binôme : la course de l’un est la récupération de l’autre.</li>
 <li>📏 La <b>distance de la séance</b> s’affiche sous ta vitesse : échauffement compris.</li>
 </ul>`},

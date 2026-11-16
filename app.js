@@ -410,7 +410,11 @@ document.addEventListener('click',async e=>{
   if(ds.npc==='autre'&&V.tab==='seance'&&!ds.npt){const box=$('#npautre');if(box){box.hidden=false;const i=$('#npo');if(i)i.focus()}return}
   if(ds.npt!==undefined&&V.tab==='seance'){const v=($('#npo')&&$('#npo').value||'').trim();if(!v){toast('Écris la raison, en quelques mots.');return}
     const d=curD();const x=d.np=d.np||[];if(!x.includes(ds.npk))x.push(ds.npk);(d.npc=d.npc||{})[ds.npk]='autre:'+v.slice(0,80);closeModal();saveS();return keepScroll(render)}
-  if(ds.npc!==undefined&&V.tab==='seance'){const d=curD();const x=d.np=d.np||[];if(!x.includes(ds.npk))x.push(ds.npk);(d.npc=d.npc||{})[ds.npk]=ds.npc;closeModal();saveS();return keepScroll(render)}
+  if(ds.npc!==undefined&&V.tab==='seance'){const d=curD();const x=d.np=d.np||[];if(!x.includes(ds.npk))x.push(ds.npk);(d.npc=d.npc||{})[ds.npk]=ds.npc;if(d.npo)d.npo=d.npo.filter(k=>k!==ds.npk);closeModal();saveS();return keepScroll(render)}
+  /* v2.0 : replier une étape terminée / la rouvrir */
+  if(ds.plie!==undefined&&V.tab==='seance'){const d=curD();const x=d.pl=d.pl||[];if(!x.includes(ds.plie))x.push(ds.plie);saveS();render();
+    const nx=[...document.querySelectorAll('section.step:not(.plie)')][0];if(nx)nx.scrollIntoView({behavior:'smooth',block:'start'});return}
+  if(ds.deplie!==undefined&&V.tab==='seance'){const d=curD();d.pl=(d.pl||[]).filter(k=>k!==ds.deplie);if((d.np||[]).includes(ds.deplie)){const o=d.npo=d.npo||[];if(!o.includes(ds.deplie))o.push(ds.deplie)}saveS();return keepScroll(render)}
   if(ds.xc!==undefined){xcAct(ds.xc);return}
   if(ds.pls!==undefined){poulsLibre();return}
   if(ds.rc!==undefined){recAct(ds.rc);return}
@@ -575,7 +579,7 @@ function recReste(){return REC?Math.max(0,REC.fin-Date.now())/1000:0}
    récupération au programme, une épreuve avec son propre temps, ou la fin). Non listé : 3 min. */
 const REC_TAB={
  s1:{al4:240,ct:240,ann:0},
- s2:{t3m:0,ra:120,m130:240,'ser:s':0},
+ s2:{t3m:0,t3624:0,ra:120,m130:240,'ser:s':0},
  s3:{'ser:s':300,'c3:c3':360,'p130:p':0},
  s4:{'c3:c3':360,'p130:p':300,'ser:s':0},
  s5:{'ser:s':300,'c3:c3':300,'c3:c3b':300,'p130:p':0},

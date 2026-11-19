@@ -468,3 +468,5 @@ html body .rep span{color:var(--nav-fonce)}
 .bilan .blég span{border-left:0;border:1.5px solid}
 
 .alerte-noms{border:2px solid #d97706;background:#fffbeb}
+
+.recuprof{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:#dcfce7;color:#14532d;font-weight:800;text-align:center}

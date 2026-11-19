@@ -18,7 +18,12 @@ function saveS(){const b=curBin();if(b&&V.sid){b.mod=b.mod||{};b.mod[V.sid]=Date
 function effV(run,sid){const d=run.seances&&run.seances[sid];return (d&&num(d.vj))||vmaOf(run,sid)}
 function ctx(run,sid,d){if(isM(run))return Object.assign({},d,{_v:vmmOf(run,sid)||num(d&&d._v),_mar:1});return Object.assign({},d,{_v:effV(run,sid)||num(d&&d._v),_ref:lastReal(run,sid)})}
 function tenR(run,sid){const d=run.seances&&run.seances[sid];if(!d)return [0,0];return tenus(sid,ctx(run,sid,d))}
+/* v4.2 : le QR de la classe dit quelles séances le professeur a reçues → « ✓ reçue par le professeur » */
+function recuProf(b,sid){const rc=b&&b.cfg&&b.cfg.rc&&b.cfg.rc[sid],L=(b&&b.cfg&&b.cfg.eleves)||[];if(!rc)return false;const I=new Set(String(rc).split('.'));
+  const R=b.runners.filter(r=>hasData(r.seances&&r.seances[sid])&&!(r.imp&&r.imp[sid]));if(!R.length)return false;
+  return R.every(r=>{const i=L.findIndex(n=>norm(n)===norm(r.full));return i>=0&&I.has(String(i))})}
 function sessState(b,sid){const has=b.runners.some(r=>hasData(r.seances&&r.seances[sid])&&!(r.imp&&r.imp[sid]));const sent=b.sent&&b.sent[sid],mod=b.mod&&b.mod[sid];
+  if(!sent&&has&&recuProf(b,sid))return 'sent';
   if(sent&&mod&&mod>sent+1500)return 'resend';if(sent)return 'sent';return has?'wip':''}
 
 /* ---------- pictogrammes (remplacent les émojis, même trait que le carnet papier) ---------- */

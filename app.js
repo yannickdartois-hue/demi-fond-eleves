@@ -217,6 +217,12 @@ async function montrerTransfert(i){const r=G.runners[i];const parts=morceaux(awa
    <div class="qr" id="rqr"></div><p class="center small" id="rqn"></p>
    <div class="row wrap" style="justify-content:space-between"><button class="btn" data-act="closem">Fermer</button><button class="btn danger" data-act="tretirer" data-v="${i}">C’est fait : retirer ${esc(r.prenom)} d’ici</button></div>`);
   qrAnime(parts)}
+/* v4.1 : élève dont le nom n'est pas dans la liste de la classe (carnet créé à la main) : on choisit le bon nom, ses séances restent les siennes */
+function horsListe(){const b=G;if(DEMO||!b||!b.cfg||!(b.cfg.eleves||[]).length)return '';const L=b.cfg.eleves,pris=new Set(b.runners.map(r=>norm(r.full)));
+  const H=b.runners.map((r,i)=>[r,i]).filter(([r])=>!L.some(n=>norm(n)===norm(r.full)));if(!H.length)return '';
+  return `<section class="card alerte-noms"><h3>⚠ ${H.length>1?'Ces noms ne sont':'Ce nom n’est'} pas dans la liste de la classe</h3><p class="small">Choisis le bon nom : les séances restent à l’élève.</p>
+  ${H.map(([r,i])=>{const p=norm(r.prenom),bons=L.filter(n=>!pris.has(norm(n))&&norm(prenomDe(n))===p),aut=L.filter(n=>!pris.has(norm(n))&&!bons.includes(n)).sort((a,b)=>a.localeCompare(b,'fr'));
+    return `<div class="row wrap" style="align-items:center;margin-top:8px"><b style="min-width:7em">${esc(r.full)}</b><select class="in sel" id="hors${i}" style="flex:1;min-width:0">${bons.map(n=>`<option>${esc(n)}</option>`).join('')}${bons.length?'<option disabled>──────</option>':'<option value="">— Choisir —</option>'}${aut.map(n=>`<option>${esc(n)}</option>`).join('')}</select><button class="btn sm pri" data-act="horsok" data-v="${i}">Corriger</button></div>`}).join('')}</section>`}
 /* lecture caméra, avec les QR en plusieurs morceaux */
 function scannerQR(onObj,titre,aide){let P={tag:null,n:0,parts:{}},fin=null;
   fin=DFQR.scanner(async t=>{t=String(t).trim();
@@ -230,6 +236,13 @@ function recevoirClasse(o){
   if(window.EPSCode)EPSCode.memoriserCle(o.c,o.cc);
   if(window.EPSCode&&EPSCode.appliquerJour&&o.cj)EPSCode.appliquerJour(o.c,o.cj); // QR du jour : ouvre la séance sans taper le code
   ROOT.classes[o.c]=cfg;ROOT.active=o.c;ecrireRoot();       /* les autres groupes de la classe recevront la nouvelle liste à leur ouverture */
+  /* v4.1 : à l'accueil, si des groupes de cette classe existent déjà, on propose de les ouvrir au lieu d'en créer un de plus */
+  if(!G){const ex=Object.entries(ROOT.groupes).filter(([,g])=>g.classe===o.c);
+    if(ex.length){setTimeout(()=>{render();modal(`<h2>Classe ${esc(o.c)}</h2><p><b>Votre groupe est-il déjà sur cette tablette ?</b> Touchez-le pour l’ouvrir avec votre code.</p>
+      <div class="grid">${ex.map(([id,g])=>`<button class="bincard" data-act="choisir" data-v="${id}"><b>${(g.noms||[]).length?g.noms.map(esc).join(' · '):'Groupe à compléter'}</b></button>`).join('')}</div>
+      <p class="small muted" style="margin-top:14px">Votre groupe n’y est pas (première fois sur cette tablette) ?</p>
+      <div class="row wrap" style="justify-content:space-between"><button class="btn" data-act="closem">Annuler</button><button class="btn" data-act="nouveau" data-v="${esc(o.c)}">Créer un nouveau groupe</button></div>`)},400);
+      return 'Classe '+o.c+' : choisissez votre groupe.'}}
   if(!G||(G.runners.length&&G.classe&&G.classe!==o.c)){setTimeout(async()=>{if(G){await verrouiller();render()}codeNouveau(o.c,cfg.cy)},400);return 'Classe '+o.c+' enregistrée.'}
   G.cfg=JSON.parse(JSON.stringify(cfg));G.classe=o.c;if(!G.runners.length)G.cy=cfg.cy;save();render();
   return 'Classe '+o.c+' : '+cfg.eleves.length+' élèves.';
@@ -281,7 +294,7 @@ function render(){
   $('#onglets').hidden=!b.runners.length;
   const views={seance:sessView,moi:()=>{V.v='prog';const a=progView();V.v='cibles';return a+ciblesView()+conseilsView()},chrono:chronoView,envoi:vEnvoi,groupe:vGroupe};
   const rappel=ne.length&&!['envoi','groupe','seance'].includes(V.tab)&&!(ne.length===1&&ne[0].id===V.sid&&V.tab==='seance')?`<button class="nonenvoye eps-av-ligne" data-tab="envoi">${AVM('envoyer')}<span>⚠ ${ne.map(s=>s.n).join(', ')} pas encore envoyée${ne.length>1?'s':''} au professeur — touche ici pour envoyer</span></button>`:'';
-  $('#main').innerHTML=icons((DEMO?bandeauDemo():'')+rappel+(views[V.tab]||sessView)());
+  $('#main').innerHTML=icons((DEMO?bandeauDemo():'')+rappel+(['seance','groupe'].includes(V.tab)?horsListe():'')+(views[V.tab]||sessView)());
   document.documentElement.style.setProperty('--hh',$('header').offsetHeight+'px');
 }
 function vChoix(){
@@ -300,8 +313,7 @@ function vChoix(){
   <section class="card"><h3>Nouveau groupe</h3>
     <button class="btn pri big full" data-act="nouveauqr">Scanner le QR de la classe</button>
     ${C.length?`<p class="small muted">Ou une classe déjà enregistrée sur la tablette :</p><div class="seg">${C.map(c=>`<button class="chip" data-act="nouveau" data-v="${esc(c)}">${esc(c)} · ${CYC[ROOT.classes[c].cy||'S'].short}</button>`).join('')}</div>`:''}
-    <details><summary class="small">Pas de QR ? Créer le groupe à la main</summary><p class="small muted">Le professeur affiche le QR de la classe au premier cours : il donne la liste des élèves et active l’envoi en ligne. Sans lui, seul l’envoi par QR code est possible.</p>
-      <div class="row wrap"><button class="btn" data-act="nouveaumain" data-v="S">Groupe de Seconde</button><button class="btn" data-act="nouveaumain" data-v="T">Groupe de Terminale</button></div></details></section>
+    <p class="small muted">Pas de QR ? Demandez au professeur d’afficher le QR de la classe : il donne la liste des élèves et ouvre la séance.</p></section>
   <section class="card demo-carte"><h3>Découvrir l’appli</h3><p class="small muted">Un groupe fictif déjà rempli, pour voir tous les écrans. Rien n’est enregistré ni envoyé.</p>
     <div class="row wrap"><button class="btn" data-act="demo" data-v="S">Démo Seconde</button><button class="btn" data-act="demo" data-v="T">Démo Terminale</button></div></section>
   <p class="ver">Demi-fond · appli élève ${APP_VERSION}. Les données restent sur cette tablette : elles partent seulement quand votre groupe les envoie au professeur.</p>`;
@@ -370,6 +382,11 @@ document.addEventListener('click',async e=>{
   if(a==='demo'){closeModal();return ouvrirDemo(v)}
   if(a==='migrer')return migrer();
   if(a==='demoQuitter'){closeModal();await verrouiller();return render()}
+  if(a==='dblquand'){closeModal();V.dblOk=true;return validerGroupe()}
+  if(a==='dblouvrir'){closeModal();const g0=G;if(g0&&!g0.runners.length&&ACTIF){const id0=ACTIF;await verrouiller();if(!(ROOT.groupes[id0]||{}).noms||!ROOT.groupes[id0].noms.length){delete ROOT.groupes[id0];ecrireRoot()}}else await verrouiller();render();
+    const g=ROOT.groupes[v];if(!g)return;return demanderCode('Code du groupe '+(g.noms||[]).join(' · '),'Tapez votre code secret à 4 chiffres.',c=>ouvrir(v,c),false,v)}
+  if(a==='horsok'){const r=G.runners[+v],sel=$('#hors'+v);if(!r||!sel||!sel.value)return;if(G.runners.some((x,j)=>j!==+v&&norm(x.full)===norm(sel.value)))return toast('Ce nom est déjà dans le groupe.');
+    const av=r.prenom;r.full=sel.value;r.prenom=prenomDe(sel.value);r.nom=nomDe(sel.value);save();render();return toast(av+' → '+r.full)}
   if(a==='clsactive'){ROOT.active=v;ecrireRoot();return render()}
   if(a==='choisir'){const g=ROOT.groupes[v];if(g){ROOT.active=g.classe||'Sans classe';ecrireRoot()}
     if(g.clair)return demanderCode('Protéger votre carnet','Choisissez un code secret de 4 chiffres pour votre groupe. Retenez-le : il sera demandé à chaque cours.',c=>ouvrir(v,c),true,v);
@@ -492,6 +509,14 @@ function validerGroupe(){
     if(!full)continue;const sx=(document.querySelector('#gx'+i+' .on')||{dataset:{}}).dataset.v||'';if(!sx)return toast('Fille ou garçon pour chaque élève (barèmes différents).');rs.push({full:full.trim(),sexe:sx})}
   if(!rs.length)return toast('Choisis au moins un élève.');if(rs.length===1&&!V.seul){V.seul=true;return toast('Un seul élève : il lui faudra un coach remplaçant à chaque séance. Touche encore « Enregistrer » pour confirmer.')}
   if(new Set(rs.map(r=>norm(r.full))).size<rs.length)return toast('Le même élève est choisi deux fois.');
+  /* v4.1 : élève déjà dans un autre groupe de cette tablette ? */
+  if(C&&!V.dblOk){const L=C.eleves||[];const autres=Object.entries(ROOT.groupes).filter(([id,g])=>id!==ACTIF&&g.classe===b.classe);
+    const dbl=[];rs.forEach(r=>{const c=norm(nomCourt(r.full,L));autres.forEach(([id,g])=>{if((g.noms||[]).some(n=>norm(n)===c))dbl.push([r.full,id,g])})});
+    if(dbl.length)return modal(`<h2>Déjà dans un autre groupe</h2><p>${dbl.map(([n,,g])=>`<b>${esc(prenomDe(n))}</b> est déjà dans le groupe <b>${(g.noms||[]).map(esc).join(' · ')}</b> sur cette tablette.`).join('<br>')}</p>
+      <p class="small muted">Si c’est votre groupe, ouvrez-le plutôt : vos séances y sont. Pour changer de groupe en gardant ses séances : dans l’ancien groupe, « … part ».</p>
+      <div class="grid">${[...new Set(dbl.map(x=>x[1]))].map(id=>`<button class="btn pri" data-act="dblouvrir" data-v="${id}">Ouvrir le groupe ${(ROOT.groupes[id].noms||[]).map(esc).join(' · ')}</button>`).join('')}</div>
+      <div class="row wrap" style="justify-content:space-between;margin-top:12px"><button class="btn" data-act="closem">Annuler</button><button class="btn danger" data-act="dblquand">Enregistrer quand même</button></div>`)}
+  V.dblOk=false;
   if(!C){const cl=($('#gcl').value||'').trim();if(!cl)return toast('Écris le nom de la classe.');b.classe=cl}
   const old=b.runners;const parti=old.filter(o=>!rs.some(r=>norm(r.full)===norm(o.full))&&Object.values(o.seances||{}).some(hasData));
   if(parti.length&&!confirm(parti.map(o=>o.prenom).join(', ')+' a des séances sur cette tablette. Pour qu’il les garde, utilise plutôt « … part » (changement de groupe).\n\nOK = retirer quand même'))return;

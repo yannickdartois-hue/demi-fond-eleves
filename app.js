@@ -229,7 +229,7 @@ function recevoirClasse(o){
   const cfg={classe:o.c,cy:o.y==='T'?'T':'S',eleves:o.l||[],lien:o.u||'',k:o.k||''};
   if(window.EPSCode)EPSCode.memoriserCle(o.c,o.cc);
   if(window.EPSCode&&EPSCode.appliquerJour&&o.cj)EPSCode.appliquerJour(o.c,o.cj); // QR du jour : ouvre la séance sans taper le code
-  ROOT.classes[o.c]=cfg;ecrireRoot();       /* les autres groupes de la classe recevront la nouvelle liste à leur ouverture */
+  ROOT.classes[o.c]=cfg;ROOT.active=o.c;ecrireRoot();       /* les autres groupes de la classe recevront la nouvelle liste à leur ouverture */
   if(!G||(G.runners.length&&G.classe&&G.classe!==o.c)){setTimeout(async()=>{if(G){await verrouiller();render()}codeNouveau(o.c,cfg.cy)},400);return 'Classe '+o.c+' enregistrée.'}
   G.cfg=JSON.parse(JSON.stringify(cfg));G.classe=o.c;if(!G.runners.length)G.cy=cfg.cy;save();render();
   return 'Classe '+o.c+' : '+cfg.eleves.length+' élèves.';
@@ -286,11 +286,16 @@ function render(){
 }
 function vChoix(){
   const Gs=Object.entries(ROOT.groupes).sort((a,b)=>(a[1].classe||'').localeCompare(b[1].classe||'','fr')||(b[1].vu||0)-(a[1].vu||0));
-  const parC={};Gs.forEach(([id,g])=>(parC[g.classe||'Sans classe']=parC[g.classe||'Sans classe']||[]).push([id,g]));
+  const parC0={};Gs.forEach(([id,g])=>(parC0[g.classe||'Sans classe']=parC0[g.classe||'Sans classe']||[]).push([id,g]));
+  /* v4.0 : seule la classe active est affichée (la dernière utilisée) ; les autres restent enregistrées, un bouton les montre */
+  const CLS=Object.keys(parC0);let act=ROOT.active&&parC0[ROOT.active]?ROOT.active:(Gs.slice().sort((a,b)=>(b[1].vu||0)-(a[1].vu||0))[0]||[])[1];
+  if(act&&typeof act==='object')act=act.classe||'Sans classe';
+  const parC=act&&CLS.length>1?{[act]:parC0[act]}:parC0,autres=CLS.filter(c=>c!==act&&CLS.length>1);
   const C=Object.keys(ROOT.classes).sort();
   return `<section class="intro"><h1>Qui utilise la tablette ?</h1><p>Chaque groupe ouvre son carnet avec son code secret.</p></section>
   ${Gs.length?Object.entries(parC).map(([c,L])=>`<section class="card"><h3>${esc(c)}${L[0][1].cy?` <span class="cls ${L[0][1].cy==='T'?'t':'s'}">${CYC[L[0][1].cy].label}</span>`:''}</h3><div class="grid">${L.map(([id,g])=>{const ne=g.nonEnv&&g.nonEnv.length;
     return `<button class="bincard ${g.cy==='T'?'cyT':''} ${ne?'nonenv':''}" data-act="choisir" data-v="${id}"><b>${g.noms&&g.noms.length?g.noms.map(esc).join(' · '):'Groupe à compléter'}</b><span class="muted small">${g.clair?'à protéger par un code':'🔒 code secret du groupe'}</span>${ne?`<span class="warn small">⚠ ${g.nonEnv.join(', ')} non envoyée${g.nonEnv.length>1?'s':''}</span>`:''}</button>`}).join('')}</div></section>`).join(''):'<p class="muted center">Aucun groupe sur cette tablette pour l’instant.</p>'}
+  ${autres.length?`<section class="card autres-cls"><p class="small muted" style="margin:0 0 8px">Autres classes sur cette tablette :</p><div class="seg">${autres.map(c=>`<button class="chip" data-act="clsactive" data-v="${esc(c)}">${esc(c)} · ${parC0[c].length} groupe${parC0[c].length>1?'s':''}</button>`).join('')}</div></section>`:''}
   ${ancien()?`<section class="card todo"><h3>Ancien carnet numérique</h3><p class="small">${ancien()} binôme${ancien()>1?'s':''} de l’ancienne appli trouvé${ancien()>1?'s':''} sur cette tablette. Reprenez-les ici : chaque binôme choisira ensuite son code secret.</p><button class="btn pri" data-act="migrer">Reprendre les binômes de l’ancien carnet</button></section>`:''}
   <section class="card"><h3>Nouveau groupe</h3>
     <button class="btn pri big full" data-act="nouveauqr">Scanner le QR de la classe</button>
@@ -365,7 +370,8 @@ document.addEventListener('click',async e=>{
   if(a==='demo'){closeModal();return ouvrirDemo(v)}
   if(a==='migrer')return migrer();
   if(a==='demoQuitter'){closeModal();await verrouiller();return render()}
-  if(a==='choisir'){const g=ROOT.groupes[v];
+  if(a==='clsactive'){ROOT.active=v;ecrireRoot();return render()}
+  if(a==='choisir'){const g=ROOT.groupes[v];if(g){ROOT.active=g.classe||'Sans classe';ecrireRoot()}
     if(g.clair)return demanderCode('Protéger votre carnet','Choisissez un code secret de 4 chiffres pour votre groupe. Retenez-le : il sera demandé à chaque cours.',c=>ouvrir(v,c),true,v);
     return demanderCode('Code du groupe '+(g.noms||[]).join(' · '),'Tapez votre code secret à 4 chiffres.',c=>ouvrir(v,c),false,v)}
   if(a==='nouveau')return codeNouveau(v,(ROOT.classes[v]||{}).cy||'S');
@@ -547,6 +553,7 @@ function chOuvrir(){V.tab='chrono'}
 /* Code du cours (eps-code.js, commun) : la saisie ne s’ouvre qu’en cours, avec le code à 4 chiffres du professeur (2 h). */
 if(window.EPSCode)EPSCode.eleve({app:'dfe',classe:()=>G&&G.classe||'',seance:()=>G?String(V.sid||''):'',seances:()=>G?sessOf(G.cy).map(s=>s.id):[],nom:s=>(SBY[s]||{n:s}).n,
   ouvrir:s=>{if(!G)return;V.sid=s;V.tab='seance';V.ri=0;V.cur=0;V.ph='piste';V.presOpen=false;G.jours=G.jours||{};G.jours[today()]=s;save();render()},
+  cleObligatoire:true,scanner:()=>scannerQR(recevoirClasse,'QR de la classe','Scanne le QR affiché par le professeur : la séance du jour s’ouvre.'),
   actif:()=>!!G&&['seance','moi','chrono'].includes(V.tab),libreSel:'[data-tab],[data-ph],[data-ri],[data-sess],[data-cur],[data-calc]',libre:['calc','closem','qrnav'],demo:()=>DEMO});
 
 /* ---------- minuteur d'échauffement (réglable, bip à la fin) ---------- */

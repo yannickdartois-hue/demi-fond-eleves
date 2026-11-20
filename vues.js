@@ -539,7 +539,7 @@ const autre=(f,d)=>`<details class="help"><summary class="small">✎ Écrire aut
    v5.0 · BILAN : deux cartes, une seule voix chacune.
    1. « Léa écrit » : mon effort · ce qui a marché · la prochaine fois (+ le conseil reçu la fois d'avant m'a-t-il aidé ?)
    2. « Tu es le coach de Léa » : ce que j'ai vu → (niv. 2) quel chiffre le montre → mon conseil → (niv. 3) mon objectif
-   Champs gardés (anciens carnets et outil prof) : bl.rpe, bl.du, bl.reu, bl.nx, bl.aide, bl.cr, bl.con ; nouveaux : bl.ch, bl.obj, bl.pfc, bl.ret
+   Champs gardés (anciens carnets et outil prof) : bl.rpe (CR-10, 1 à 10 depuis la v5.1), bl.reu, bl.nx, bl.aide, bl.cr, bl.con ; nouveaux : bl.ch, bl.obj, bl.pfc, bl.ret
    ===================================================================== */
 const choix=(f,L,d)=>{const c=getPath(d,f)||'';return `<div class="choix">${L.map(x=>`<button type="button" class="chip ch ${c===x?'on':''}" data-set="${f}" data-v="${esc(x)}">${esc(x)}</button>`).join('')}</div>`};
 function obsDe(s,run){const M=isM(run);if(M&&SBYM_OLD[s.id]===s)return null;return (M?OBS_M:OBS_C)[s.id]||null}
@@ -552,9 +552,7 @@ function bilanView(s,run,d,t,n,v){
   const ok75=n&&t/n>=.75,verbe=M?'marché':'couru';
   const reuL=(ok75?['J’ai tenu mes projets']:[]).concat(['J’ai été régulier','J’ai bien géré mon départ',M?'J’ai marché sans jamais courir':'J’ai couru sans m’arrêter']).slice(0,4);
   const nxL=['Partir moins vite','Être plus régulier','Écouter les temps de passage',M?'Garder ma technique quand c’est dur':'Accélérer à la fin'];
-  const rpe=SEC?`<div class="rpe r5">${[[2,'facile'],[4,'moyen'],[6,'dur'],[8,'très dur'],[10,'à fond']].map(([k,l])=>`<button class="chip r${k} ${String(getPath(d,'bl.rpe'))===String(k)?'on':''}" data-set="bl.rpe" data-v="${k}">${l}</button>`).join('')}</div>`
-   :`<div class="rpe">${[0,1,2,3,4,5,6,7,8,9,10].map(k=>`<button class="chip sm r${k} ${String(getPath(d,'bl.rpe'))===String(k)?'on':''}" data-set="bl.rpe" data-v="${k}">${k}</button>`).join('')}</div><p class="small rpel">${getPath(d,'bl.rpe')!=null&&getPath(d,'bl.rpe')!==''?RPE_TXT[+getPath(d,'bl.rpe')]:'0 repos … 10 maximal'}</p>
-     <div class="row wrap"><label>Durée de pratique (min) ${stp('bl.du',d,{step:5,min:10,max:120,start:60,ph:'60'})}</label>${out('Charge de la séance',chargeOf(d)!=null?chargeOf(d)+' UA':'–')}</div>`;
+  const rpe=rpeSlider(d);
   const c1=`<div class="bcard cour"><h4><span>✎</span> ${P} écrit</h4>${n?`<p class="small muted">Projets tenus aujourd’hui : <b>${t} / ${n}</b></p>`:''}
     ${aide}${bt('Mon effort')}${rpe}${bt('Ce qui a marché aujourd’hui')}${choix('bl.reu',reuL,d)}${bt('La prochaine fois, je…')}${choix('bl.nx',nxL,d)}${SEC?'':autre('bl.nx',d)}</div>`;
   /* ---- carte 2 : le coach ---- */
@@ -585,6 +583,19 @@ function bilanView(s,run,d,t,n,v){
   return `<section class="card bilan"><h3>Bilan</h3>${c1}${c2}</section>`;
 }
 /* v5.0 : début de séance — l'objectif fixé par le coach la fois d'avant */
+/* v5.1 : effort ressenti — échelle CR-10 de Borg (1 à 10), curseur coloré, repères de parole ; rien n'est placé au départ */
+const RPE_MOT=['','très, très facile','facile','modéré','un peu difficile','difficile','entre difficile et très difficile','très difficile','entre très difficile et maximal','presque maximal','maximal'];
+const RPE_PAR=['','je pourrais continuer longtemps','je respire calmement','je parle en phrases','je respire vite','je parle par mots','je parle par mots, avec peine','je dis 2 ou 3 mots','je dis un mot','je ne peux plus parler','je ne pourrais pas aller plus loin'];
+const RPE_COUL=['','#16a34a','#4caf1f','#84cc16','#c5c814','#facc15','#fbbf24','#fb923c','#f2643a','#ef4444','#991b1b'];
+const rpeLect=v=>v?`<b>${v}</b><span>${RPE_MOT[v]}<small>${RPE_PAR[v]}</small></span>`:'<span>Touche la barre pour placer ton effort</span>';
+const rpeStyle=v=>v?`background:${RPE_COUL[v]};color:${v>=4&&v<=6?'#3d2e00':'#fff'}`:'';
+function rpeSlider(d){let v=num(getPath(d,'bl.rpe'));if(v!=null)v=Math.max(1,Math.min(10,Math.round(v)));
+  return `<p class="small muted" style="margin:-2px 0 12px">Sur l’ensemble de la séance. Fais glisser le rond sur la couleur qui correspond à ton effort.</p>
+  <div class="rpeS ${v?'':'vide'}"><div class="rpeS-bar"></div><input type="range" class="rpeR" min="1" max="10" step="1" value="${v||5}" data-p="bl.rpe" aria-label="Mon effort de 1 à 10">
+  <div class="rpeS-t">${[1,2,3,4,5,6,7,8,9,10].map(k=>`<span class="${k===v?'on':''}">${k}</span>`).join('')}</div><div class="rpeS-e"><span>très facile</span><span>maximal</span></div>
+  <div class="rpeS-l" style="${rpeStyle(v)}">${rpeLect(v)}</div></div>`}
+function majRpe(el){const v=+el.value,w=el.closest('.rpeS');if(!w)return;w.classList.remove('vide');const l=w.querySelector('.rpeS-l');l.innerHTML=rpeLect(v);l.setAttribute('style',rpeStyle(v));
+  w.querySelectorAll('.rpeS-t span').forEach((x,i)=>x.classList.toggle('on',i+1===v))}
 function objRecu(b,ri,s){const run=b.runners[ri],ps=prevSid(s.id),pd=ps&&run.seances&&run.seances[ps],o=pd&&pd.bl&&pd.bl.obj;if(!o||!o.k||o.v==null||o.v==='')return '';const D=OBJ_T[o.k];if(!D)return '';
   const d=sd(run,s.id),cn=coachOf(b,ri,ps).n,val=D.time?fT(parseT(o.v)):o.v+' '+D.u;
   return `<section class="card thin objrecu"><p><b>🎯 L’objectif de ${esc(cn||'ton coach')} pour toi :</b> ${esc(D.t)} ${D.max?'au plus ':''}<b>${esc(val)}</b></p>${segv('obp',d,[['oui','Je le prends comme projet'],['non','Je garde le mien']])}</section>`}

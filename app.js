@@ -8,7 +8,7 @@
 const AVT=(n,b,c)=>window.EPSAvatar?EPSAvatar(n,b,c):'',AVM=n=>window.EPSAvatar?EPSAvatar.mini(n):'';
 
 'use strict';
-const APP_VERSION='v5.0 · 20/11/2026';
+const APP_VERSION='v5.1 · 20/11/2026';
 const CLE='dfe-v1';
 /* Envoi en ligne : le lien de dépôt (Nuage, « Demande de fichier ») arrive avec le QR de la classe.
    Il n'apparaît jamais à l'écran. Vide = envoi en ligne pas encore activé (le QR code reste possible). */
@@ -541,6 +541,7 @@ function validerGroupe(){
 document.addEventListener('click',e=>{const p=e.target.closest('section.step p.muted.small');if(p)p.classList.toggle('ouvert')});
 document.addEventListener('keydown',ev=>{if(ev.target&&ev.target.id==='code'&&ev.key==='Enter'){ev.preventDefault();validerCode()}});
 document.addEventListener('input',e=>{const el=e.target;if(!G)return;
+  if(el.classList&&el.classList.contains('rpeR'))majRpe(el);
   if(['cvma','cpct','csec','cdist'].includes(el.id)){const v=num(el.value);if(el.id==='cvma')CALC.vma=v;if(el.id==='cpct')CALC.pct=v;if(el.id==='csec')CALC.sec=v;if(el.id==='cdist')CALC.dist=v;
     document.querySelectorAll('[data-cpct]').forEach(b=>b.classList.toggle('on',+b.dataset.cpct===CALC.pct));return calcOut()}
   if(el.dataset.p&&V.tab==='seance'){const r=G.runners[el.dataset.rn!=null?+el.dataset.rn:(V.ri||0)],d=sd(r,V.sid);setPath(d,el.dataset.p,el.value);fixP(d);
@@ -548,6 +549,7 @@ document.addEventListener('input',e=>{const el=e.target;if(!G)return;
   if(el.dataset.vm!==undefined){G.runners[+el.dataset.vm].vmaManuelle=el.value;save()}
 });
 document.addEventListener('change',async e=>{const el=e.target;
+  if(el.classList&&el.classList.contains('rpeR')&&V.tab==='seance')return keepScroll(render);
   if(['chw','chr','chn'].includes(el.id)){const v=Math.max(el.id==='chr'?0:1,R(num(el.value)||0));CH[{chw:'w',chr:'r',chn:'n'}[el.id]]=v;return render()}
   if(el.id==='chmid'){CH.mid=el.checked?1:0;return}if(el.id==='chvoice'){CH.voice=el.checked;return}
   if(el.id==='optdark'){ROOT.opts.dark=el.checked;ecrireRoot();document.documentElement.dataset.theme=el.checked?'dark':'light';return}

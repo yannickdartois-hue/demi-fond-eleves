@@ -145,10 +145,10 @@ function objectives(s,run,v){const L=[];if(!v)return L;
     if(ty==='ra2')L.push([`Récupération ${fT(a2)} à ${a1} %`,`${R(dist(a2,v*a1/100)/10)*10} m`,{pct:a1,mode:'dur',sec:a2}]);
     if(ty==='i112')L.push([`1’12 à ${a1} %`,`coupelle n° ${fP(v*a1/100)} (${R(v*a1/100*20)} m)`,{pct:a1,mode:'dur',sec:72}]);
     if(ty==='ser')L.push([esc(a2),[...new Map(a3.map(r=>[r[0]+'|'+r[1],r])).values()].map(r=>`${r[0]} m → ${fT(tSec(r[0],v*pctRow(r)/100))}`).join(' · '),{pct:R(pctRow(a3[0])),mode:'dist',dist:a3[0][0]}]);
-    if(ty==='c500'&&s.eval){const t=tSec(500,v*1.1);L.push([esc(a2)+' à 110 %',`${fT(t)} · passage au 250 m en ${fT(t/2)}`,{pct:110,mode:'dist',dist:500}])}
+    if(ty==='c500'&&s.eval){const t=tSec(500,v*P500);L.push([esc(a2)+' à 112 %',`${fT(t)} · passage au 250 m en ${fT(t/2)}`,{pct:112,mode:'dist',dist:500}])}
     if(ty==='m130')L.push(['1’30 mesuré','tu mesures ta distance : environ '+R(dist(90,v*1.05)/5)*5+' m à 105 %',{pct:105,mode:'dur',sec:90}]);
     if(ty==='c3'&&a1==='c3'){const d3=R(dist(180,v)/10)*10;L.push([s.eval?'C1 · 3’ à 100 %':'3’ à 100 %',`${d3} m · mi-course ${R(d3/20)*10} m · ${fP(v)} grands plots`,{pct:100,mode:'dur',sec:180}])}
-    if(ty==='p130'&&a1==='p'){const prev=lastReal(run,s.id);const sug=R(dist(90,v*1.05)/5)*5;L.push([esc(a2.replace(/ \(.*\)/,'')),(prev?`projet ≈ ${prev} m (ta dernière distance) · `:'')+`à 105 % : ${sug} m · à 45" : ${R(sug/2)} m`,{pct:105,mode:'dur',sec:90}])}
+    if(ty==='p130'&&a1==='p'){const prev=lastReal(run,s.id),k=p130Pct(s.id);const sug=R(dist(90,v*k)/5)*5;L.push([esc(a2.replace(/ \(.*\)/,'')),(prev?`projet ≈ ${prev} m (ta dernière distance) · `:'')+`à ${R(k*100)} % : ${sug} m · à 45" : ${R(sug/2)} m`,{pct:R(k*100),mode:'dur',sec:90}])}
     if(ty==='at')L.push(['Atelier S7',`A : 1’30 à l’allure du 3’ = ${R(dist(90,v)/5)*5} m · C : 300 m à 105 % en ${fT(300*3.6/(v*1.05))}`,{pct:105,mode:'dist',dist:300}]);
   });return L}
 const OBJ_INTRO={s2:'Aujourd’hui tu <b>mesures ta VMA</b> au test 36"/24" : la moyenne des plots atteints = ta VMA. Ensuite, chaque étape t’affiche sa cible, calculée avec cette VMA.',s1:'Aujourd’hui tu <b>mesures ta VMA de travail</b> : les grands plots jaunes franchis pendant ton 3’ rapide = ta vitesse en km/h. Elle servira à calculer tous tes objectifs.',
@@ -367,11 +367,11 @@ function blockView(b,s,run,d,vma){
   if(ty==='ec2'){const a=c3dist(d.c3),c=c3dist(d.c3b);const e=a!=null&&c!=null?Math.abs(a-c):null;
     return `<section class="card thin">${out('Écart entre les deux 3’ (objectif : 20 m au plus)',e==null?'–':R(e)+' m '+(e<=20?'✓':'✗'),'hi')}</section>`}
   if(ty==='p130'){const p=d[a1]||{};const e=num(p.ec),z=T?zoneT(e):zoneS(e),real=p130real(p);
-    const prev=lastReal(run,s.id);const sug=vma?R(dist(90,vma*1.05)/5)*5:null;const base=prev||(vma?dist(90,vma):null);const mini=base?Math.ceil(AMB*base/5)*5:null;
-    const prud=num(p.proj)!=null&&!ambition('p130',Object.assign({},d,{_v:vma,_ref:prev}),a1);
+    const prev=lastReal(run,s.id),k=p130Pct(s.id),kA=T?P130T:1;const sug=vma?R(dist(90,vma*k)/5)*5:null;const base=prev||(vma?dist(90,vma*kA):null);const mini=base?Math.ceil(AMB*base/5)*5:null;
+    const prud=num(p.proj)!=null&&!ambition('p130',Object.assign({},d,{_v:vma,_ref:prev}),a1,kA);
     return `<section class="card"><h3>${esc(a2)} ${who('CR')}</h3>
      <label>Mon projet de distance (m) ${stp(a1+'.proj',d,{step:5,min:100,max:700,start:prev||sug||300,ph:prev?String(prev):(sug?String(sug):''),chk:CHK.proj})}</label>
-     ${prud?`<p class="vw">⚠ Projet prudent : il ne comptera pas comme tenu. Vise au moins ${mini} m (95 % de ${prev?'ta dernière distance':'ta VMA'}).</p>`:''}${pronoField(s,b,d)}<p class="muted small">Je place mon plot à cette distance <b>avant</b> la ligne d’arrivée.${prev?' Dernière distance réalisée : '+prev+' m.':''}${calcLink({pct:105,mode:'dur',sec:90})}</p>
+     ${prud?`<p class="vw">⚠ Projet prudent : il ne comptera pas comme tenu. Vise au moins ${mini} m (95 % de ${prev?'ta dernière distance':T?'ta distance à 110 % de ta VMA':'ta vitesse sur 3’'}).</p>`:''}${pronoField(s,b,d)}<p class="muted small">Je place mon plot à cette distance <b>avant</b> la ligne d’arrivée.${prev?' Dernière distance réalisée : '+prev+' m.':''}${calcLink({pct:R(k*100),mode:'dur',sec:90})}</p>
      <p class="small"><b>Au coup de sifflet, j’étais :</b></p>${segv(a1+'.sd',d,[['av','avant la ligne'],['ap','après la ligne']])}
      <label>à combien de mètres de la ligne ? ${stp(a1+'.mg',d,{min:0,max:200,start:0,chk:CHK.mg})}</label>
      <div class="outs">${out('Zone',z?z[1]+(T?' · '+String(z[0]).replace('.',',')+' pt':''):'–','hi')}${out('Distance réalisée',fM(real))}${out('Projet',z?((T?z[0]>=3:z[0]>=2)?(prud?'tenu, mais trop prudent : ne compte pas':'✓ tenu'):'✗'):'–')}</div>
@@ -439,7 +439,7 @@ function blockView(b,s,run,d,vma){
   if(ty==='situe')return `<section class="card"><h3>Je me situe ${who('R')}</h3>
      <p class="small"><b>AFL2 · S’entraîner</b></p>${segv('situe.a2',d,[[1,'1 · isolé'],[2,'2 · suiveur'],[3,'3 · acteur'],[4,'4 · leader']])}
      <p class="muted small">Isolé : carnet incomplet, ¼ des projets tenus. Suiveur : ⅓. Acteur : carnet complet, ⅔. Leader : carnet exact, ¾, projet anticipé et réalisé.</p>
-     <p class="small"><b>AFL3 · Coach ou juge-chrono</b></p>${segv('situe.a3',d,[[1,'1 · fantôme'],[2,'2 · théorique'],[3,'3 · complice'],[4,'4 · personnel']])}
+     <p class="small"><b>AFL3 · Coach</b></p>${segv('situe.a3',d,[[1,'1 · fantôme'],[2,'2 · théorique'],[3,'3 · complice'],[4,'4 · personnel']])}
      <p class="muted small">Fantôme : peu attentif. Théorique : conseils simples. Complice : conseils pertinents pour tenir l’allure. Personnel : conseils avisés au bon moment.</p></section>`;
   if(ty==='at'){const r=(d.at&&d.at.r)||[];
     return `<section class="card"><h3>2 · Mon point faible : atelier ${who('CR')}</h3>${segv('at.ch',d,[['A','A · départ du 3’'],['B','B · 1’30 en zone'],['C','C · chute de vitesse']])}
@@ -451,11 +451,11 @@ function blockView(b,s,run,d,vma){
      <div class="row wrap"><label>Temps visé du binôme ${tstp('rlv',d,{min:600,max:3000,start:1500,ph:'25’00'})}</label><label>Temps du binôme ${tstp('rlt',d,{min:600,max:3000,start:parseT(d.rlv)||1500})}</label></div>
      <details class="help"><summary>Mes relais (facultatif)</summary><div>${[0,1,2,3,4,5,6].map(i=>`<div class="srow"><b class="sl">Relais ${i+1}</b><label>Distance (m) ${stp(`rl.${i}.d`,d,{step:100,min:100,max:2000,start:400})}</label><label>Temps ${tstp(`rl.${i}.t`,d,{min:10,max:900,start:90})}</label></div>`).join('')}</div></details>
      <div class="outs">${out('Écart au temps visé',vv!=null&&tt!=null?(tt-vv>=0?'+':'−')+fT(Math.abs(tt-vv)):'–','hi')}${out('Vitesse moyenne',tt?fV(5000*3.6/tt)+' km/h':'–')}${out('Projet (± 30 s)',okb(ok)||'–')}</div><p class="muted small">Record cadette du 5 km : 17’32.</p></section>`}
-  if(ty==='c500'){const c=d[a1]||{};const tt=parseT(c.t),pj=parseT(c.tp),ps=parseT(c.ps);const sx=run.sexe==='F'?'F':'G';const sug=vma&&s.eval?R(tSec(500,vma*1.1)):null;
+  if(ty==='c500'){const c=d[a1]||{};const tt=parseT(c.t),pj=parseT(c.tp),ps=parseT(c.ps);const sx=run.sexe==='F'?'F':'G';const sug=vma&&s.eval?R(tSec(500,vma*P500)):null;
     return `<section class="card"><h3>${esc(a2)} ${who('CR')}</h3>
      <label>Mon temps visé ${tstp(a1+'.tp',d,{min:75,max:270,start:sug||(sx==='F'?165:130),ph:sug?fT(sug):'',chk:CHK.t500})}</label>
      ${pj!=null&&vma&&!ambition('c500',Object.assign({},d,{_v:vma}),a1)?`<p class="vw">⚠ Projet prudent : il ne comptera pas comme tenu. Vise ${fT(Math.floor(tSec(500,vma)/AMB))} ou plus vite.</p>`:''}${pronoField(s,b,d)}
-     <p class="muted small">${pj?`Passage visé au 250 m : <b>${fT(pj/2)}</b> · vitesse ${fV(1800/pj)} km/h.`:'Repère : 2’00 au 500 m = 15 km/h.'}${calcLink({pct:110,mode:'dist',dist:500})}</p>
+     <p class="muted small">${pj?`Passage visé au 250 m : <b>${fT(pj/2)}</b> · vitesse ${fV(1800/pj)} km/h.`:'Repère : 2’00 au 500 m = 15 km/h.'}${calcLink({pct:112,mode:'dist',dist:500})}</p>
      <button class="btn live" data-live="c500|${a1}">⏱ Chronométrer en direct</button>
      <div class="row wrap"><label>Passage au 250 m ${tstp(a1+'.ps',d,{min:30,max:150,start:pj?R(pj/2):60,chk:x=>x!=null&&tt&&x>=tt?'le passage doit être plus court que le temps final.':''})}</label><label>Temps final ${tstp(a1+'.t',d,{min:75,max:270,start:pj||130,chk:CHK.t500})}</label></div>
      <div class="outs">${out('Temps',tt?fT(tt):'–','hi')}${out('Vitesse (1 800 ÷ temps)',tt?fV(1800/tt)+' km/h':'–')}${out('Note /8',tt?String(note500(sx,tt)).replace('.',','):'–')}${out('2e 250 − 1er',ps&&tt?((tt-ps-ps)>=0?'+':'−')+R(Math.abs(tt-ps-ps))+' s':'–')}${out('Projet (± 2 s)',tt!=null&&pj!=null?(Math.abs(tt-pj)<=2?'✓ tenu':'✗ écart '+(tt-pj>0?'+':'−')+R(Math.abs(tt-pj))+' s'):'–')}</div></section>`}
@@ -483,7 +483,7 @@ function blockView(b,s,run,d,vma){
      <div class="reps">${Array.from({length:a2},(_,i)=>`<div class="rep"><span>${i+1}</span>${stp(`c112.${i}`,d,{step:0.5,min:3,max:25,start:c?R(c*2)/2:10})}</div>`).join('')}</div></section>`}
   if(ty==='rep')return `<section class="card"><h3>Ma répartition AFL2 / AFL3 ${who('R')}</h3>${segv('rep',d,[['6/2','6 / 2'],['4/4','4 / 4'],['2/6','2 / 6']])}<p class="muted small">AFL2 s’entraîner / AFL3 coach ou juge-chrono.</p><label>Pourquoi ce choix ${txt('repw',d)}</label></section>`;
   if(ty==='mine'){const x=(d.mi&&d.mi.x)||[];
-    return `<section class="card"><h3>1 · Ma séance (paramètres de la charge) ${who('R')}</h3><p class="small warn">Une semaine avant l’épreuve : pas plus de 110 % de ta VMA et pas plus de 1500 m rapides au total. On s’affûte, on ne s’épuise pas.</p>
+    return `<section class="card"><h3>1 · Ma séance (paramètres de la charge) ${who('R')}</h3><p class="small warn">Une semaine avant l’épreuve : pas plus vite que l’allure du 500 m (112 % de ta VMA) et pas plus de 1500 m rapides au total. On s’affûte, on ne s’épuise pas.</p>
      <div class="row wrap"><label class="f1">Thème ${txt('mi.th',d,'ex. ne pas partir trop vite')}</label><label class="f1">Problème vu en T7 ${txt('mi.pb',d,'ex. passage au 250 m 4 s trop rapide')}</label></div>
      ${[0,1].map(i=>`<div class="srow"><b class="sl">Exercice ${i+1}</b><label class="f1">Exercice <input class="in" data-p="mi.x.${i}.e" value="${esc(x[i]&&x[i].e||'')}" placeholder="ex. 250 m"></label><label>Distance / durée <input class="in w" data-p="mi.x.${i}.dd" value="${esc(x[i]&&x[i].dd||'')}"></label><label>% VMA ${stp(`mi.x.${i}.i`,d,{step:5,min:50,max:140,start:100})}</label><label>Récup <input class="in w" data-p="mi.x.${i}.r" value="${esc(x[i]&&x[i].r||'')}" placeholder="2’"></label><label>Répétitions ${stp(`mi.x.${i}.n`,d,{min:1,max:12,start:3})}</label></div>`).join('')}</section>`}
   if(ty==='real8'){const r=d.r8||[];
@@ -648,12 +648,12 @@ function liveTap(tag,x){const L=LIVE;if(!L)return;if(tag==='mid'){L.mid=x}else{L
 /* ---------- cibles & progression ---------- */
 function ciblesView(){
   const b=curBin();const T=cyOf(b)==='T';const L=curSessOf(b);
-  return `<section class="card"><h2>Mes cibles</h2><p class="muted small">Calculées avec ta VMA (${T?'test 36"/24" de T2, puis re-test en T6':'S1, puis mise à jour en S6'}). <button class="btn sm" data-act="calc">🧮 Calculer une autre allure</button></p>
+  return `<section class="card"><h2>Mes cibles</h2><p class="muted small">Calculées avec ${T?'ta VMA (test 36"/24" de T2, puis re-test en T5)':'ta vitesse sur 3’ (test 36"/24" de S2, puis ton 3’ de S3, puis celui de l’épreuve blanche en S6)'}. <button class="btn sm" data-act="calc">🧮 Calculer une autre allure</button></p>
   <div class="grid2">${b.runners.map((r,ri)=>{const v1=vmaOf(r,L[T?2:1].id),v2=vmaOf(r,L[L.length-1].id);const v=v2||v1;
-   const rows=!v?`<tr><td>VMA à mesurer en ${T?'T2':'S1'}</td></tr>`:T?
-     `<tr><th>Plot 36" à 110 % · 120 %</th><td>n° ${fP(v*1.1)} · ${fP(v*1.2)}</td></tr><tr><th>Coupelle 1’12 à 80 %</th><td>n° ${fP(v*0.8)}</td></tr><tr><th>Récupération 3’ à 70 %</th><td>${R(dist(180,v*0.7)/10)*10} m</td></tr><tr><th>300 m à 110 %</th><td>${fT(tSec(300,v*1.1))}</td></tr><tr><th>500 m à 110 % (passage 250)</th><td>${fT(tSec(500,v*1.1))} (${fT(tSec(250,v*1.1))})</td></tr><tr><th>1’30 à 105 % · 110 %</th><td>${R(dist(90,v*1.05)/5)*5} · ${R(dist(90,v*1.1)/5)*5} m</td></tr>`
-     :`<tr><th>Plot 36" à 100 % · 105 % · 110 %</th><td>n° ${fP(v)} · ${fP(v*1.05)} · ${fP(v*1.1)}</td></tr><tr><th>Récupération 3’ à 70 %</th><td>${fP(v*0.7)} grands plots</td></tr><tr><th>3’ à 100 % (mi-course)</th><td>${R(dist(180,v)/10)*10} m (${R(dist(90,v)/10)*10} m)</td></tr><tr><th>1’30 à 105 % · 110 %</th><td>${R(dist(90,v*1.05)/5)*5} · ${R(dist(90,v*1.1)/5)*5} m</td></tr>`;
-   return `<div class="sub"><h3>${esc(r.prenom)} · VMA ${fV(v1)}${v2&&v1&&Math.abs(v2-v1)>0.05?' → '+fV(v2):''} km/h</h3><table class="tt l">${rows}</table>
+   const rows=!v?`<tr><td>À mesurer en ${T?'T2':'S2'}</td></tr>`:T?
+     `<tr><th>Plot 36" à 110 % · 120 %</th><td>n° ${fP(v*1.1)} · ${fP(v*1.2)}</td></tr><tr><th>Coupelle 1’12 à 95 %</th><td>n° ${fP(v*0.95)}</td></tr><tr><th>Récupération 3’ à 70 %</th><td>${R(dist(180,v*0.7)/10)*10} m</td></tr><tr><th>Allure du 500 m (112 %) : 250 m · 300 m</th><td>${fT(tSec(250,v*P500))} · ${fT(tSec(300,v*P500))}</td></tr><tr><th>500 m à 112 % (passage 250)</th><td>${fT(tSec(500,v*P500))} (${fT(tSec(250,v*P500))})</td></tr><tr><th>1’30 à 110 %</th><td>${R(dist(90,v*P130T)/5)*5} m</td></tr>`
+     :`<tr><th>Récupération 3’ à 70 % de la VMA estimée</th><td>${fP(v*VMA_3*0.7)} grands plots</td></tr><tr><th>3’ à 100 % (mi-course)</th><td>${R(dist(180,v)/10)*10} m (${R(dist(90,v)/10)*10} m)</td></tr><tr><th>1’30 à 105 %</th><td>${R(dist(90,v*P130S)/5)*5} m</td></tr><tr><th>125 m à l’allure du 1’30</th><td>${fT(tSec(125,v*P130S))}</td></tr>`;
+   return `<div class="sub"><h3>${esc(r.prenom)} · ${T?'VMA':'vitesse sur 3’'} ${fV(v1)}${v2&&v1&&Math.abs(v2-v1)>0.05?' → '+fV(v2):''} km/h</h3><table class="tt l">${rows}</table>
     <label class="small">VMA donnée par le prof (si pas de test) <input class="in w" data-vm="${ri}" inputmode="decimal" value="${esc(r.vmaManuelle||'')}"></label></div>`}).join('')}</div></section>`;
 }
 /* courbes SVG (aucune bibliothèque) */
@@ -724,10 +724,10 @@ function blocM(b,s,run,d,v){const [ty,a1,a2,a3]=b;const sx=run.sexe==='F'?'F':'G
      ${mx?'<p class="muted small">À fond, sans jamais courir. La distance divisée par 50 donne ta vitesse de marche : elle sert à calculer tes allures.</p>':`<label>Mon projet de distance (m) ${stp(a1+'.v',d,{step:5,min:150,max:700,start:sug||400,ph:sug?String(sug):''})}</label><p class="muted small">Je place mon plot à cette distance avant la ligne.${sug?' À ta vitesse de marche : '+sug+' m.':''}</p>`}
      <div class="row wrap"><label>Tours de 200 m ${stp(a1+'.t',d,{min:0,max:4,start:2})}</label><label>+ mètres après la ligne ${stp(a1+'.pl',d,{step:5,min:0,max:195,start:0,chk:CHK.plot})}</label></div>
      <div class="outs">${out('Distance',fM(dd),'hi')}${out('Vitesse (distance ÷ 50)',dd?fV(dd/50)+' km/h':'–')}${out('Note /8',dd!=null?String(noteMd(sx,dd)).replace('.',','):'–')}${mx?'':out('Projet /4',pj==null?'–':pj+' · écart '+(e>=0?'+':'')+R(e)+' m')}</div></section>`}
-  if(ty==='m1000'){const c=d[a1]||{};const tt=parseT(c.t),pj=parseT(c.tp),ps=parseT(c.ps);const sug=v?R(1000*3.6/v):null;
+  if(ty==='m1000'){const c=d[a1]||{};const tt=parseT(c.t),pj=parseT(c.tp),ps=parseT(c.ps);const sug=v?R(1000*3.6/(v*PM1000)):null;
     return `<section class="card"><h3>${esc(a2)} ${who('CR')}</h3>
      <label>Mon temps visé ${tstp(a1+'.tp',d,{min:300,max:1000,start:sug||480,ph:sug?fT(sug):''})}</label>
-     <p class="muted small">${pj?`Passage visé au 500 m : <b>${fT(pj/2)}</b> · par tour de 200 m : <b>${fT(pj/5)}</b>.`:'5 tours de 200 m.'}${sug?' À ta vitesse de marche : '+fT(sug)+'.':''}</p>
+     <p class="muted small">${pj?`Passage visé au 500 m : <b>${fT(pj/2)}</b> · par tour de 200 m : <b>${fT(pj/5)}</b>.`:'5 tours de 200 m.'}${sug?' À 92 % de ta vitesse de marche (un 1000 m dure 3 fois plus longtemps qu’un 3’) : '+fT(sug)+'.':''}</p>
      ${a3?`<p class="small">Passages visés : <b>${pj?[1,2,3].map(k=>fT(pj*k/4)).join(' · '):'–'}</b> (250 · 500 · 750 m). Le coach annonce chaque passage.</p>`:''}
      <div class="row wrap">${a3?`<label>Passage au 250 m ${tstp(a1+'.p1',d,{min:60,max:300,start:pj?R(pj/4):120})}</label>`:''}<label>Passage au 500 m ${tstp(a1+'.ps',d,{min:150,max:500,start:pj?R(pj/2):240})}</label>${a3?`<label>Passage au 750 m ${tstp(a1+'.p3',d,{min:200,max:800,start:pj?R(pj*3/4):360})}</label>`:''}<label>Temps final ${tstp(a1+'.t',d,{min:300,max:1000,start:pj||480})}</label></div>
      <div class="outs">${out('Temps',tt?fT(tt):'–','hi')}${out('Vitesse',tt?fV(3600/tt)+' km/h':'–')}${out('Note du 1000 m /8',tt?String(noteMt(sx+'1000',tt)).replace('.',','):'–')}${out('Projet (± 10 s)',tt!=null&&pj!=null?(Math.abs(tt-pj)<=10?'✓ tenu':'✗ écart '+(tt-pj>0?'+':'−')+R(Math.abs(tt-pj))+' s'):'–')}${out('2e 500 − 1er',ps&&tt?((tt-ps-ps)>=0?'+':'−')+R(Math.abs(tt-ps-ps))+' s':'–')}</div></section>`}

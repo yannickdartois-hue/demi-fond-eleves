@@ -1,6 +1,6 @@
 /* pouls-df.js · Branche la prise de pouls assistée (eps-pouls.js) sur les cases de FC du demi-fond.
    Ne modifie ni les séances ni vues.js : ajoute un bouton « Prendre mon pouls » à côté de chaque case de FC
-   (défi des 4 allures : al.N.fc ; bilan : bl.fc). La FC validée remplit la case, comme une saisie à la main.
+   (jeu des 3 allures : al.N.fc ; bilan : bl.fc). La FC validée remplit la case, comme une saisie à la main.
    FC de récupération à 1 min : enregistrée à côté (al.N.fcr, bl.fcr), dans les données de la séance. */
 (function(){
   'use strict';

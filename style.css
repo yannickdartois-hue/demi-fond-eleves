@@ -470,3 +470,16 @@ html body .rep span{color:var(--nav-fonce)}
 .alerte-noms{border:2px solid #d97706;background:#fffbeb}
 
 .recuprof{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:#dcfce7;color:#14532d;font-weight:800;text-align:center}
+/* v4.3 : dessin de l'appli en haut à droite des QR, pour savoir dans quelle appli on est (hors du QR : il reste lisible) */
+.qr{position:relative;margin-top:26px}
+.qr::before{content:"";position:absolute;top:-22px;right:-14px;width:52px;height:52px;background:#fff url(icon-192.png) center/cover no-repeat;border-radius:14px;box-shadow:0 3px 10px rgba(0,0,0,.25);border:2px solid #fff}
+.qr svg{background:#fff}
+
+/* v4.3 : accueil en 3 étapes */
+.etape{display:flex;gap:14px;align-items:flex-start}
+.etape .enum{flex:none;width:44px;height:44px;border-radius:50%;background:var(--nav-fonce,#1e293b);color:#fff;font:900 24px/44px var(--fd,system-ui);text-align:center}
+.etape .ecorps{flex:1;min-width:0}.etape h2{margin:4px 0 6px;font-size:21px}.etape p{margin:0 0 10px}
+.etape .etq{font-weight:800;margin:10px 0 6px}
+.s400{flex-wrap:wrap}
+.cible400{display:flex;align-items:baseline;gap:8px;margin:4px 0 6px}.cible400 span{font-weight:700;color:var(--muted,#64748b)}
+.cible400 b{font:900 34px/1 var(--fd,system-ui);font-variant-numeric:tabular-nums;letter-spacing:.5px}

@@ -42,7 +42,7 @@ const WARM=['<b>Les 3 parties de la fiche GAREEPS</b> (15 min) :','1 · Cardio 5
 const HELP={
  al4:()=>['<b>Toute la classe en même temps, 3 min par allure.</b> Les grands plots jaunes sont tous les 50 m : le nombre de grands plots franchis en 3 min = ta vitesse en km/h.',
   '<b>Avant chaque allure</b>, annonce à ton coach combien de grands plots tu vas franchir. Le coach compte et note.',
-  '<b>Les 4 allures</b> : marche rapide · footing (tu parles en phrases) · allure rythmée (tu parles par mots) · 3’ rapide (le plus vite possible en tenant les 3 min, sans marcher).',
+  '<b>Les 3 allures</b> : marche rapide · footing (tu parles en phrases) · à fond (le plus vite possible en tenant les 3 min, sans marcher).',
   '<b>Points</b> : annonce juste = 3 pts, à 1 plot près = 1 pt. Les grands plots de ton 3’ rapide donnent ta VMA de travail.'],
  ct:()=>['<b>Le binôme est une équipe.</b> 2 manches de 6 min, 3 min de pause entre les deux. Chacun court 1 tour (200 m) à son tour et tape la main de son partenaire dans la zone de relais.',
   '<b>Avant chaque manche</b>, signez un contrat : combien de tours le binôme va faire en 6 min. La 2e manche se joue en connaissant le résultat de la 1re.',
@@ -54,7 +54,7 @@ const HELP={
   '<b>Conseil</b> : les 10 premiers mètres décident de tout, ne sprinte pas. Tôt deux fois → ralentis. Tard deux fois → accélère.']},
  ra:()=>['<b>3 min à 70 % de ta VMA</b> : tu cours tranquillement, tu dois pouvoir parler. Compte les grands plots jaunes franchis (cible écrite au-dessus), puis 1 min de marche.'],
  m130:()=>['<b>Départ de la ligne, 1’30 de course</b> à l’allure que tu pourrais tenir encore une fois.',
-  '<b>Le coach</b> crie « mi-course » à 45", compte tes tours et relève le plot plat où tu es au coup de sifflet. Le bouton ⏱ « Compter en direct » l’aide.',
+  '<b>Le coach</b> crie « mi-course » à 45", compte tes tours et relève le plot où tu es au coup de sifflet. Le bouton ⏱ « Compter en direct » l’aide.',
   '<b>Distance</b> = tours × 200 m + plot d’arrêt (en mètres depuis la ligne). Elle devient ton premier projet pour la S3.'],
  c3:(b,s)=>[`<b>Départ de la ligne, tous ensemble, 3 min de course.</b>${s.eval?' C’est la course C1 de l’épreuve.':''}`,
   '<b>Avant</b> : écris ta distance visée (à 100 % de ta VMA, la proposition est en gris dans la case).',
@@ -82,7 +82,7 @@ const HELP={
  rel5:()=>['<b>Relais 5 km (25 tours) à deux.</b> Chacun court la distance prévue puis passe le relais dans la zone.','Écrivez votre <b>temps visé</b> avant de partir (repères : tableau des vitesses). Projet tenu si le temps du binôme est à 30 s du temps visé.','<b>Conseil</b> : des relais courts (200 à 400 m) permettent de courir plus vite.'],
  c500:(b,s)=>['<b>500 m = 2 tours et demi.</b> Écris ton temps visé : ton passage au 250 m doit en être la moitié.'+(s.eval?' Le 2e 500 m se court 10 min après le 1er.':''),'<b>Le coach</b> chronomètre ton passage au 250 m et ton arrivée (bouton ⏱ « Chronométrer en direct ») et t’annonce le passage.','Vitesse = 1 800 ÷ temps en secondes. <b>Projet tenu</b> si tu arrives à 2 s de ton temps visé.'],
  tours:()=>['<b>6 courses d’un tour (200 m)</b> à vitesse imposée : 8, 10, 12, 14 km/h puis 2 vitesses que tu choisis.','Le coach annonce et chronomètre chaque tour. <b>Tenu</b> si tu es à 2 s du temps au tour.','Temps au tour (s) = 720 ÷ vitesse.'],
- t3624:()=>['<b>Test 36"/24"</b> : un plot plat tous les 10 m depuis la ligne (et si possible un plot intermédiaire tous les 5 m).','<b>10 fois</b> : 36" de course le plus vite possible <b>mais en restant régulier</b>, puis 24" de repos sur place. Au coup de sifflet, le coach note le plot atteint (plot n° 12 = 12 km/h ; entre deux plots = ,5).','<b>VMA = somme des 10 plots ÷ 10.</b> Exemple : 15,5 + 16 + 16 + 17 + 16,5 + 17,5 + 16,5 + 17 + 16 + 16 = 164 → VMA 16,4 km/h.'],
+ t3624:()=>['<b>Test 36"/24"</b> : un plot tous les 10 m depuis la ligne (et si possible un plot intermédiaire tous les 5 m).','<b>10 fois</b> : 36" de course le plus vite possible <b>mais en restant régulier</b>, puis 24" de repos sur place. Au coup de sifflet, le coach note le plot atteint (plot n° 12 = 12 km/h ; entre deux plots = ,5).','<b>VMA = somme des 10 plots ÷ 10.</b> Exemple : 15,5 + 16 + 16 + 17 + 16,5 + 17,5 + 16,5 + 17 + 16 + 16 = 164 → VMA 16,4 km/h.'],
  rt:()=>['<b>Re-test 36"/24"</b> en début de séance (même protocole qu’en T2).','Ta nouvelle VMA remplace celle de T2 pour calculer tes cibles de T6 à T9.'],
  ser:()=>['Chaque ligne : distance, % de VMA, récupération. Le <b>temps prévu</b> est calculé avec ta VMA (passage à mi-distance entre parenthèses).','L’un court, l’autre coache : il annonce le passage et chronomètre. <b>Tenu</b> à 2 s près du temps prévu.'],
  ra2:(b)=>[`<b>Récupération active ${fT(b[2])} à ${b[1]} % de ta VMA</b> : tu cours tranquillement, tu dois pouvoir parler. La distance à faire est écrite au-dessus.`],
@@ -102,7 +102,7 @@ function withHelp(html,key,b,s){const h=helpBox(key,b,s);if(!h)return html;const
 let CALC={vma:null,pct:70,mode:'dur',sec:180,dist:300};
 const f1=x=>(R(x*10)/10).toString().replace('.',',');
 const DUR=[[36,'36"'],[72,'1’12'],[90,'1’30'],[180,'3’'],[360,'6’']];
-const REP={36:['plot plat',10,'36" = 1/100 h : 1 km/h = 1 plot plat (10 m)'],72:['coupelle',20,'1’12 = 1/50 h : 1 km/h = 1 coupelle (20 m)'],90:[null,25,'1’30 = 1/40 h : 1 km/h = 25 m'],180:['grand plot jaune',50,'3’ = 1/20 h : 1 km/h = 1 grand plot jaune (50 m)']};
+const REP={36:['plot',10,'36" = 1/100 h : 1 km/h = 1 plot (10 m)'],72:['coupelle',20,'1’12 = 1/50 h : 1 km/h = 1 coupelle (20 m)'],90:[null,25,'1’30 = 1/40 h : 1 km/h = 25 m'],180:['grand plot jaune',50,'3’ = 1/20 h : 1 km/h = 1 grand plot jaune (50 m)']};
 function piste(d){const t=Math.floor(d/200),r=R((d-t*200)/10)*10;return (t?t+' tour'+(t>1?'s':'')+' + ':'')+r+' m'}
 function openCalc(preset){
   let vma=null;try{const b=curBin();if(V.v==='sess'){const r=b.runners[V.ri||0];vma=effV(r,V.sid)}else if(V.v==='cibles'){const L=curSessOf(b);vma=vmaOf(b.runners[preset&&preset.ri||0],L[L.length-1].id)}}catch(e){}
@@ -139,8 +139,8 @@ const calcLink=(o)=>` <button class="lnk small" data-calc='${JSON.stringify(o)}'
 const HIDE_FIRST=['s3','t3','t4'];
 function objectives(s,run,v){const L=[];if(!v)return L;
   s.blocks.forEach(b=>{const [ty,a1,a2,a3]=bk(b);
-    if(ty==='i36')L.push([`36"/36" à ${a1} %`,`plot plat n° ${fP(v*a1/100)} (${R(v*a1/100*10)} m)`,{pct:a1,mode:'dur',sec:36}]);
-    if(ty==='i36m')L.push(['36"/36" à 110 % puis 120 %',`plot plat n° ${fP(v*1.1)} puis n° ${fP(v*1.2)}`,{pct:110,mode:'dur',sec:36}]);
+    if(ty==='i36')L.push([`36"/36" à ${a1} %`,`plot n° ${fP(v*a1/100)} (${R(v*a1/100*10)} m)`,{pct:a1,mode:'dur',sec:36}]);
+    if(ty==='i36m')L.push(['36"/36" à 110 % puis 120 %',`plot n° ${fP(v*1.1)} puis n° ${fP(v*1.2)}`,{pct:110,mode:'dur',sec:36}]);
     if(ty==='ra')L.push(['Récupération 3’ à 70 % de ta VMA',`${fP(v*VMA_3*0.7)} grands plots (${R(dist(180,v*VMA_3*0.7))} m)`,{pct:R(70*VMA_3),mode:'dur',sec:180}]);
     if(ty==='ra2')L.push([`Récupération ${fT(a2)} à ${a1} %`,`${R(dist(a2,v*a1/100)/10)*10} m`,{pct:a1,mode:'dur',sec:a2}]);
     if(ty==='i112')L.push([`1’12 à ${a1} %`,`coupelle n° ${fP(v*a1/100)} (${R(v*a1/100*20)} m)`,{pct:a1,mode:'dur',sec:72}]);
@@ -182,7 +182,8 @@ function presView(b,sid){
 }
 /* ---------- séance en direct : à tour de rôle ou ensemble, chrono, « passer » ---------- */
 const npKey=B=>B[0]+'|'+(B[1]||'');
-const ENSEMBLE=['al4','ra','ra2'];                       /* les deux coureurs courent en même temps */
+const ENSEMBLE=['al4','ra','ra2'];
+const BINOME=['ct'];   /* v4.3 : un seul écran pour le binôme (contrat d'équipe, recopié sur chaque élève) */                       /* les deux coureurs courent en même temps */
 const NO_DECO=['warm','warmT','mwarm','grp','txt','pf','pfT','situe','pe','rep','mine','pfin','mpf','mpe','afl1','afl1T','ec2','vup','mnote','at'];
 const COUL=['a','b','c'];
 const NP_CAUSES={blesse:'blessé(e), malade ou douleur',temps:'pas eu le temps',meteo:'pluie, météo',autre:'autre raison'};
@@ -238,7 +239,8 @@ function sessView(){
   ${M?SECU_M:''}
   ${calcAvant?obj:''}
   ${stepsBar(s,d)}
-  ${blocs.map(B=>{const ens=ENSEMBLE.includes(B[0])&&b.runners.length>1;const h=ens?ensembleView(B,s,b):withHelp(blockView(B,s,run,d,vma),B[0],B,s);return stepWrap(decorate(h,B,s,d,b,ri,ens),B,s,d)}).join('')}
+  ${blocs.map(B=>{const ens=ENSEMBLE.includes(B[0])&&b.runners.length>1;const bin=BINOME.includes(B[0])&&b.runners.length>1;
+    const h=ens?ensembleView(B,s,b):bin?withHelp(blockView(B,s,b.runners[0],sd(b.runners[0],s.id),vma),B[0],B,s).replace(/data-(p|stp|set|tog)="/g,'data-rn="0" data-bin="1" data-$1="'):withHelp(blockView(B,s,run,d,vma),B[0],B,s);return stepWrap(decorate(h,B,s,d,b,ri,ens),B,s,d)}).join('')}
   ${b.runners.length>1?`<style>body{background:var(--run-${COUL[ri]||'a'})!important}</style>`:''}
   <button type="button" class="pouls-fab" data-pls="1" aria-label="Prendre mon pouls">❤ Pouls</button>
   <div class="xchr flotte" aria-label="Chronomètre"><b class="xchr-t">0:00,0</b><button type="button" class="chip sm" data-xc="go" aria-label="Démarrer ou arrêter">▶ ⏸</button><button type="button" class="chip sm" data-xc="r" aria-label="Remettre à zéro">⟲</button></div>
@@ -265,10 +267,14 @@ const oneMode=()=>DB.opts.one!=null?DB.opts.one:window.innerWidth<600;
 function stepsBar(s,d){const L=stepList(s);const n=L.filter(B=>stepDone(B,d)).length;const one=oneMode();if(V.cur==null||V.cur>=L.length)V.cur=0;
   return `<nav class="steps" aria-label="Étapes de la séance"><div class="sbar">${L.map((B,i)=>one?`<button class="${stepDone(B,d)?'ok':''} ${V.cur===i?'cur':''}" data-cur="${i}" aria-label="Étape ${i+1}">${i+1}</button>`:`<a href="#st-${i}" class="${stepDone(B,d)?'ok':''}" aria-label="Étape ${i+1}"><span>${i+1}</span></a>`).join('')}</div>
    <p><b>${n} / ${L.length}</b> étapes remplies${n===L.length&&L.length?(V.ph==='fin'?' : envoie la séance au prof':' : à la fin, passe au bilan'):''} <button class="lnk small" data-act="onetog">${one?'Tout afficher':'Une étape à la fois'}</button></p></nav>`}
+/* v4.3 : plot d'arrêt du 1'30 choisi par numéro (1 plot = 10 m) ; la valeur gardée reste en mètres */
+function plotsM(path,val){const v=num(val);const L=['<option value=""'+(v==null?' selected':'')+'>plot ?</option>'];for(let k=0;k<=19;k++)L.push(`<option value="${k*10}"${v!=null&&Math.abs(v-k*10)<1?' selected':''}>plot ${k} (${k*10} m)</option>`);
+  return `<select class="in plotsel" data-p="${path}" data-rr="1" aria-label="Plot au sifflet">${L.join('')}</select>`}
 /* v2.1 : plot atteint au 36"/24" choisi dans une liste (12 à 25 par 0,5 ; de 6 à 11,5 : groupe « moins de 12 » en bas de liste) */
 function plotSel(path,val){const v=num(val),o=x=>{const t=String(x).replace('.',',');return `<option value="${t}"${v!=null&&Math.abs(v-x)<0.01?' selected':''}>${t}</option>`};
-  const hi=[],lo=[];for(let x=12;x<=25;x+=0.5)hi.push(o(x));for(let x=6;x<12;x+=0.5)lo.push(o(x));
-  return `<select class="in plotsel" data-p="${path}" data-rr="1" aria-label="Plot atteint"><option value=""${v==null?' selected':''}>plot ?</option>${hi.join('')}<optgroup label="Moins de 12 km/h">${lo.join('')}</optgroup></select>`}
+  /* v4.3 : de 6 à 25 dans l'ordre ; « plot ? » est placé juste avant 12 pour que la liste s'ouvre au milieu */
+  const L=[];for(let x=6;x<=25;x+=0.5){if(x===12)L.push(`<option value=""${v==null?' selected':''}>plot ?</option>`);L.push(o(x))}
+  return `<select class="in plotsel" data-p="${path}" data-rr="1" aria-label="Plot atteint">${L.join('')}</select>`}
 function stepWrap(html,B,s,d){if(RESULT.includes(B[0]))return html;const L=stepList(s);const i=L.findIndex(x=>x===B||(x[0]===B[0]&&x[1]===B[1]));if(i<0)return html;const ok=stepDone(B,d);
   /* v2.0 : le numéro reste toujours visible (vert + ✓ quand l'étape est remplie) ; les numéros écrits en dur dans les titres sont retirés */
   const k0=npKey(B),plie=(d.pl||[]).includes(k0)||((d.np||[]).includes(k0)&&!(d.npo||[]).includes(k0));
@@ -306,7 +312,7 @@ const sbOpt=o=>esc(JSON.stringify({mn:o.min,mx:o.max,s0:o.start}));
 function stp(path,d,o){o=o||{};const v=getPath(d,path),st=o.step||1;const w=o.chk?o.chk(num(v)):'';
   return `<span class="stp"><button type="button" class="sb" data-stp="${path}" data-dl="${-st}" data-o="${sbOpt(o)}" aria-label="moins">−</button><input class="in ${o.cls||''}" data-p="${path}" inputmode="decimal" value="${v==null?'':esc(v)}" placeholder="${esc(o.ph||'')}"><button type="button" class="sb" data-stp="${path}" data-dl="${st}" data-o="${sbOpt(o)}" aria-label="plus">+</button></span>${w?`<span class="vw">⚠ ${w}</span>`:''}`}
 /* temps : −5 −1 [1’52] +1 +5 (on peut aussi taper 1'52, 1:52 ou 112) */
-function tstp(path,d,o){o=o||{};const v=getPath(d,path);const w=o.chk?o.chk(parseT(v)):'';const b=(dl,l)=>`<button type="button" class="sb ${Math.abs(dl)>1?'s5':''}" data-stp="${path}" data-tm="1" data-dl="${dl}" data-o="${sbOpt(o)}">${l}</button>`;
+function tstp(path,d,o){o=o||{};const v=getPath(d,path);const w=o.chk?o.chk(parseT(v)):'';const b=(dl,l)=>o.peu&&Math.abs(dl)>1?'':`<button type="button" class="sb ${Math.abs(dl)>1?'s5':''}" data-stp="${path}" data-tm="1" data-dl="${dl}" data-o="${sbOpt(o)}">${l}</button>`;
   return `<span class="stp tm">${b(-5,'−5')}${b(-1,'−1')}<input class="in" data-p="${path}" inputmode="text" value="${v==null?'':esc(v)}" placeholder="${esc(o.ph||'')}">${b(1,'+1')}${b(5,'+5')}</span>${w?`<span class="vw">⚠ ${w}</span>`:''}`}
 /* contrôles de vraisemblance */
 const CHK={
@@ -324,10 +330,10 @@ const near=(p,pct)=>x=>x!=null&&p&&Math.abs(x-p)>p*pct?`plus de ${R(pct*100)} % 
 function blockView(b,s,run,d,vma){
   const [ty,a1,a2,a3]=b;const T=s.id[0]==='t';
   const bm=blocM(b,s,run,d,vma);if(bm!=null)return bm;
-  if(ty==='al4'){const L=['Marche rapide','Footing','Allure rythmée','3’ rapide'],S0=[5,8,10,12];let pts=0;
+  if(ty==='al4'){const L=['Marche rapide','Footing','À fond'],S0=[5,8,12];   /* v4.3 : 3 allures */let pts=0;
     const rows=L.map((l,i)=>{const a=num(getPath(d,`al.${i}.an`)),e=num(getPath(d,`al.${i}.re`));let ok=null;if(a!=null&&e!=null){const df=Math.abs(a-e);ok=df<=1;pts+=df===0?3:df<=1?1:0}
       return `<div class="srow"><b class="sl">${l} ${okb(ok)}</b><label>Annonce ${stp(`al.${i}.an`,d,{step:0.5,min:0,max:30,start:S0[i]})}</label><label>Réalisés ${stp(`al.${i}.re`,d,{step:0.5,min:0,max:30,start:a!=null?a:S0[i],chk:CHK.gp})}</label><label>♥ /min ${stp(`al.${i}.fc`,d,{step:4,min:40,max:240,start:120,chk:CHK.fc})}</label></div>`}).join('');
-    return `<section class="card"><h3>1 · Défi des 4 allures ${who('CR')}</h3><p class="small">⏱ Entre deux allures : <b>1’30</b> de marche (prends ton pouls).</p><p class="muted small">3 min par allure. J’annonce mes grands plots jaunes, le coach compte. Grands plots en 3’ = ma vitesse en km/h. Annonce juste = 3 pts, à 1 plot = 1 pt.</p>
+    return `<section class="card"><h3>1 · Jeu des 3 allures ${who('CR')}</h3><p class="small">⏱ Entre deux allures : <b>1’30</b> de marche (prends ton pouls).</p><p class="muted small">3 min par allure : marche rapide, footing, à fond. J’annonce mes grands plots jaunes, le coach compte. Grands plots en 3’ = ma vitesse en km/h. Annonce juste = 3 pts, à 1 plot = 1 pt.</p>
      ${rows}<div class="outs">${out('Points du défi',pts+' pts')}${out('Ma vitesse sur 3’ (provisoire)',vma?fV(vma)+' km/h':'–','hi')}</div></section>`}
   if(ty==='ct'){let pts=0;const rows=[0,1].map(i=>{const c=num(getPath(d,`ct.${i}.c`)),r=num(getPath(d,`ct.${i}.r`));let ok=null;if(c!=null&&r!=null){ok=c===r;pts+=ok?5:Math.abs(c-r)<=1?2:0}
       return `<div class="srow"><b class="sl">Manche ${i+1} ${okb(ok)}</b><label>Contrat (tours) ${stp(`ct.${i}.c`,d,{min:0,max:40,start:10})}</label><label>Réalisés ${stp(`ct.${i}.r`,d,{min:0,max:40,start:c!=null?c:10})}</label></div>`}).join('');
@@ -335,16 +341,17 @@ function blockView(b,s,run,d,vma){
   if(ty==='grp')return `<section class="card"><h3>3 · Mon groupe de vitesse ${who('R')}</h3>${segv('grp',d,[['G1','G1'],['G2','G2'],['G3','G3'],['G4','G4']])}<p class="muted small">Ouvre « Mes cibles » : elles sont calculées avec ta VMA de travail.</p></section>`;
   if(ty==='i36'||ty==='i36m'){const plan=ty==='i36'?Array(a2).fill(a1):[].concat(...a1.map(r=>Array(r[1]).fill(r[0])));const nrep=plan.length;const reps=(d.i36||[]);const np=reps.filter(x=>x==='P').length;
     const title=ty==='i36'?`36"/36" au plot cible à ${a1} %`:'Intermittent 36"/36" : 110 % puis 120 %';
-    const cibles=[...new Set(plan)].map(p=>out('Plot plat à '+p+' %',vma?'n° '+fP(vma*p/100):'?','hi')).join('');
+    const cibles=[...new Set(plan)].map(p=>out('Plot à '+p+' %',vma?'n° '+fP(vma*p/100):'?','hi')).join('');
     return `<section class="card"><h3>${title} ${who('C')}</h3><div class="outs">${cibles}${out('« Pile »',np+' / '+nrep)}</div>${calcLink({pct:plan[0],mode:'dur',sec:36})}
      <p class="muted small">Touche chaque répétition : T = trop tôt, P = pile au plot, L = trop tard.</p>
      <div class="reps">${plan.map((p,i)=>`<div class="rep"><span>${i+1}</span>${ty==='i36m'?`<small>${p}%</small>`:''}${['T','P','L'].map(x=>`<button class="chip sm ${reps[i]===x?'on '+x:''}" data-set="i36.${i}" data-v="${x}">${x}</button>`).join('')}</div>`).join('')}</div></section>`}
   if(ty==='ra'){const c=vma?R(vma*VMA_3*0.7*2)/2:null;return `<section class="card"><h3>Récupération active 3’ à 70 % de ta VMA estimée ${who('C')}</h3><div class="outs">${out('Grands plots à réaliser',c!=null?fP(c):'?','hi')}</div>${calcLink({pct:70,mode:'dur',sec:180})}
     <label>Grands plots réalisés ${stp('ra',d,{step:0.5,min:0,max:25,start:c||8,chk:x=>x!=null&&vma&&x>vma?'plus vite que ta VMA en récupération ? Vérifie.':''})}</label></section>`}
   if(ty==='m130'){const m=d.m130||{};const dd=tp(m.t,m.p),F=run.sexe==='F';
-    return `<section class="card"><h3>Le 1’30 mesuré ${who('C')}</h3><p class="muted small">Le coach compte les tours et relève le plot plat d’arrêt (en mètres depuis la ligne).</p>
+    return `<section class="card"><h3>1’30 mesurée · très rapide ${who('C')}</h3>
+     <p class="small"><b>Le coureur</b> : cours <b>1’30 le plus vite possible</b>, sans t’arrêter, pour faire ta plus grande distance.<br><b>Le coach</b> : compte les <b>tours</b> complets, puis note le <b>plot</b> où le coureur est au coup de sifflet (un plot tous les 10 m depuis la ligne).</p>
      <button class="btn live" data-live="dur|m130">⏱ Compter en direct</button>
-     <div class="row wrap"><label>Tours ${stp('m130.t',d,{min:0,max:9,start:1})}</label><label>Plot d’arrêt (m) ${stp('m130.p',d,{step:10,min:0,max:190,start:100,chk:CHK.plot})}</label></div>
+     <div class="row wrap"><label>Tours complets ${stp('m130.t',d,{min:0,max:9,start:1})}</label><label>Plot au sifflet ${plotsM('m130.p',m.p)}</label></div>
      <div class="outs">${out('Distance',fM(dd),'hi')}${out('Vitesse (distance ÷ 25)',dd?fV(dd/25)+' km/h':'–')}${out('Note /4',dd?noteS(F?'F130':'G130',dd):'–')}</div>
      <p class="small">Mon projet pour la S3 = cette distance, à 10 m près.</p></section>`}
   if(ty==='c3'){const c=d[a1]||{};const dd=c3dist(c),h=c3half(c),rg=c3reg(c),v=num(c.v);const sug=vma?R(dist(180,vma)/10)*10:null;
@@ -458,7 +465,7 @@ function blockView(b,s,run,d,vma){
        <label>Temps réalisé ${tstp(`tr.${i}.t`,d,{min:20,max:120,start:pv?R(pv):60,chk:pv?near(pv,0.2):null})}</label></div>`}).join('');
     return `<section class="card"><h3>1 · Varier les allures et coacher ${who('C')}</h3>${rows}</section>`}
   if(ty==='t3624'||ty==='rt'){const key=ty==='t3624'?'ts':'rt';const a=d[key]||[];const vt=testVma(a);
-    return `<section class="card"><h3>${ty==='rt'?'Re-test VMA 36"/24" (début de séance)':'Test VMA 36"/24"'} ${who('C')}</h3><p class="muted small">À chaque coup de sifflet (toutes les minutes), note le plot atteint : plot n° 12 = 12 km/h, entre deux plots = ,5. 36" à fond mais régulier, 24" de repos sur place.</p>
+    return `<section class="card"><h3>${ty==='rt'?'Re-test VMA 36"/24" (début de séance)':'Test VMA 36"/24" · très rapide mais régulier'} ${who('C')}</h3><p class="muted small">À chaque coup de sifflet (toutes les minutes), note le plot atteint : plot n° 12 = 12 km/h, entre deux plots = ,5. 36" à fond mais régulier, 24" de repos sur place.</p>
      <div class="reps">${[0,1,2,3,4,5,6,7,8,9].map(i=>`<div class="rep"><span>${i+1}’</span>${plotSel(`${key}.${i}`,a[i])}</div>`).join('')}</div>
      <div class="outs">${out('Minutes remplies',a.filter(x=>num(x)!=null).length+' / 10')}${out(ty==='rt'?'Ma nouvelle VMA *':'Ma VMA (somme ÷ 10) *',vt?fV(vt)+' km/h':'–','hi')}</div>
      <p class="small"><b>*</b> Attention : ce test peut avoir tendance à surestimer très légèrement la VMA.</p>
@@ -466,8 +473,8 @@ function blockView(b,s,run,d,vma){
   if(ty==='ser'){const rows=d[a1]||[];
     return `<section class="card"><h3>${esc(a2)} ${who('C')}</h3><p class="muted small">En alternance dans le binôme : la course de l’un est la récupération de l’autre. Temps prévu calculé avec ${s.id[0]==='s'?'ta vitesse sur 3’ (ou ta VMA estimée, quand c’est indiqué)':'ta VMA'}.</p>
      ${a3.map((r,i)=>{const pv=prevu(r[0],pctRow(r),vma);const t=parseT(rows[i]&&rows[i].tr);const ok=t!=null&&pv?Math.abs(t-pv)<=2:null;
-      return `<div class="srow"><b class="sl">${r[0]} m à ${r[1]} %${r[3]==='E'?' de ta VMA':''} ${okb(ok)}</b><span class="pill">prévu <b>${pv?fT(pv):'?'}</b>${pv?' (mi-distance '+fT(pv/2)+')':''}${r[2]?' · récup '+r[2]:''}</span>
-       <label>Réalisé ${tstp(`${a1}.${i}.tr`,d,{min:10,max:300,start:pv?R(pv):60,chk:pv?near(pv,0.2):null})}</label>${t!=null&&pv?`<span class="small ${ok?'ok':'ko'}">${t-pv>=0?'+':'−'}${R(Math.abs(t-pv))} s</span>`:''}</div>`}).join('')}</section>`}
+      return `<div class="srow s400"><b class="sl">${i+1}. ${r[0]} m ${okb(ok)}</b><div class="cible400"><span>À faire en</span><b>${pv?fT(pv):'?'}</b></div>
+       <label>Réalisé ${tstp(`${a1}.${i}.tr`,d,{min:10,max:300,start:pv?R(pv):60,chk:pv?near(pv,0.2):null,peu:1})}</label>${t!=null&&pv?`<span class="small ${ok?'ok':'ko'}">${t-pv>=0?'+':'−'}${R(Math.abs(t-pv))} s</span>`:''}</div>`}).join('')}</section>`}
   if(ty==='ra2'){const c=vma?R(dist(a2,vma*a1/100)/10)*10:null;
     return `<section class="card"><h3>Récupération active ${fT(a2)} à ${a1} % ${who('C')}</h3><div class="outs">${out('Distance à réaliser',c?c+' m · '+piste(c):'?','hi')}</div>${calcLink({pct:a1,mode:'dur',sec:a2})}
      <label>Distance réalisée (m) ${stp('ra2',d,{step:10,min:0,max:1200,start:c||400,chk:x=>x!=null&&c&&x>c*1.3?'bien plus vite que prévu : c’est une récupération.':''})}</label></section>`}

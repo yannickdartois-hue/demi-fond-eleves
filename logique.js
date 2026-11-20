@@ -31,7 +31,7 @@ function vmaOf(run,sid){
     /* v2.0 : S2 = test 36"/24" (VMA mesurée) → vitesse sur 3’ estimée = VMA ÷ 0,86 ; dès la S4, le 3’ couru en S3 la remplace */
     const vt2=testVma(se.s2&&se.s2.ts),v3=vt2&&se.s3&&c3dist(se.s3.c3);if(i>=3&&v3)return v3/50;if(i>=1&&vt2)return vt2/VMA_3;
     const v2=se.s2&&c3dist(se.s2.t3m);if(i>=1&&v2)return v2/50;   /* anciens carnets : test de 3’ en S2 */
-    const al=se.s1&&se.s1.al;const v1=al&&al[3]?num(al[3].re):null;return v1||num(run.vmaManuelle)||null}
+    const al=se.s1&&se.s1.al;const v1=al?(al[3]&&num(al[3].re)!=null?num(al[3].re):(al[2]?num(al[2].re):null)):null;   /* v4.3 : 3 allures, « à fond » = 3e */return v1||num(run.vmaManuelle)||null}
   /* Terminale : test 36"/24" en T2, re-test en T5 (anciens carnets : T6) */
   const vt=testVma(se.t2&&se.t2.ts),v5=testVma(se.t5&&se.t5.rt),v6=testVma(se.t6&&se.t6.rt);
   if(i>=4&&v5)return v5;if(i>=5&&v6)return v6;return vt||num(run.vmaManuelle)||null;

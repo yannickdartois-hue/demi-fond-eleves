@@ -8,7 +8,7 @@
 const AVT=(n,b,c)=>window.EPSAvatar?EPSAvatar(n,b,c):'',AVM=n=>window.EPSAvatar?EPSAvatar.mini(n):'';
 
 'use strict';
-const APP_VERSION='v2 · 23/10/2026';
+const APP_VERSION='v4.3 · 20/11/2026';
 const CLE='dfe-v1';
 /* Envoi en ligne : le lien de dépôt (Nuage, « Demande de fichier ») arrive avec le QR de la classe.
    Il n'apparaît jamais à l'écran. Vide = envoi en ligne pas encore activé (le QR code reste possible). */
@@ -313,18 +313,22 @@ function vChoix(){
   if(act&&typeof act==='object')act=act.classe||'Sans classe';
   const parC=act&&CLS.length>1?{[act]:parC0[act]}:parC0,autres=CLS.filter(c=>c!==act&&CLS.length>1);
   const C=Object.keys(ROOT.classes).sort();
-  return `<section class="intro"><h1>Qui utilise la tablette ?</h1><p>Chaque groupe ouvre son carnet avec son code secret.</p></section>
-  ${Gs.length?Object.entries(parC).map(([c,L])=>`<section class="card"><h3>${esc(c)}${L[0][1].cy?` <span class="cls ${L[0][1].cy==='T'?'t':'s'}">${CYC[L[0][1].cy].label}</span>`:''}</h3><div class="grid">${L.map(([id,g])=>{const ne=g.nonEnv&&g.nonEnv.length;
-    return `<button class="bincard ${g.cy==='T'?'cyT':''} ${ne?'nonenv':''}" data-act="choisir" data-v="${id}"><b>${g.noms&&g.noms.length?g.noms.map(esc).join(' · '):'Groupe à compléter'}</b><span class="muted small">${g.clair?'à protéger par un code':'🔒 code secret du groupe'}</span>${ne?`<span class="warn small">⚠ ${g.nonEnv.join(', ')} non envoyée${g.nonEnv.length>1?'s':''}</span>`:''}</button>`}).join('')}</div></section>`).join(''):'<p class="muted center">Aucun groupe sur cette tablette pour l’instant.</p>'}
-  ${autres.length?`<section class="card autres-cls"><p class="small muted" style="margin:0 0 8px">Autres classes sur cette tablette :</p><div class="seg">${autres.map(c=>`<button class="chip" data-act="clsactive" data-v="${esc(c)}">${esc(c)} · ${parC0[c].length} groupe${parC0[c].length>1?'s':''}</button>`).join('')}</div></section>`:''}
+  /* v4.3 : accueil en 3 étapes numérotées */
+  const groupes=Gs.length?Object.entries(parC).map(([c,L])=>`<p class="etq">${esc(c)}${L[0][1].cy?` <span class="cls ${L[0][1].cy==='T'?'t':'s'}">${CYC[L[0][1].cy].label}</span>`:''}</p><div class="grid">${L.map(([id,g])=>{const ne=g.nonEnv&&g.nonEnv.length;
+    return `<button class="bincard ${g.cy==='T'?'cyT':''} ${ne?'nonenv':''}" data-act="choisir" data-v="${id}"><b>${g.noms&&g.noms.length?g.noms.map(esc).join(' · '):'Groupe à compléter'}</b><span class="muted small">${g.clair?'à protéger par un code':'🔒 touche pour ouvrir'}</span>${ne?`<span class="warn small">⚠ ${g.nonEnv.join(', ')} non envoyée${g.nonEnv.length>1?'s':''}</span>`:''}</button>`}).join('')}</div>`).join(''):'';
+  return `<section class="intro"><h1>Commencer la séance</h1><p>Suivez les 3 étapes, dans l’ordre.</p></section>
+  <section class="card etape"><span class="enum">1</span><div class="ecorps"><h2>Scanne le QR de la séance</h2><p>À <b>chaque cours</b>, le professeur l’affiche : il ouvre la séance du jour.</p>
+    <button class="btn pri big full" data-act="nouveauqr">📷 Scanner le QR</button></div></section>
+  <section class="card etape"><span class="enum">2</span><div class="ecorps"><h2>Touche ton groupe</h2>
+    ${Gs.length?`<p>Vous aviez <b>cette tablette</b> la dernière fois : touchez votre groupe.</p>${groupes}
+      ${autres.length?`<p class="small muted" style="margin:12px 0 6px">Votre classe n’est pas là ?</p><div class="seg">${autres.map(c=>`<button class="chip" data-act="clsactive" data-v="${esc(c)}">${esc(c)} · ${parC0[c].length} groupe${parC0[c].length>1?'s':''}</button>`).join('')}</div>`:''}
+      <p class="small muted" style="margin-top:12px">Première fois sur cette tablette ? Après le scan, touchez « Créer un nouveau groupe ».</p>`
+    :`<p>Première fois sur cette tablette : après le scan, créez votre groupe et choisissez vos noms dans la liste.</p>`}</div></section>
+  <section class="card etape"><span class="enum">3</span><div class="ecorps"><h2>Tape votre code secret</h2><p>Le code à 4 chiffres choisi par votre groupe. Oublié ? Touchez « Code oublié ? » et montrez le QR au professeur.</p></div></section>
   ${ancien()?`<section class="card todo"><h3>Ancien carnet numérique</h3><p class="small">${ancien()} binôme${ancien()>1?'s':''} de l’ancienne appli trouvé${ancien()>1?'s':''} sur cette tablette. Reprenez-les ici : chaque binôme choisira ensuite son code secret.</p><button class="btn pri" data-act="migrer">Reprendre les binômes de l’ancien carnet</button></section>`:''}
-  <section class="card"><h3>Nouveau groupe</h3>
-    <button class="btn pri big full" data-act="nouveauqr">Scanner le QR de la classe</button>
-    ${C.length?`<p class="small muted">Ou une classe déjà enregistrée sur la tablette :</p><div class="seg">${C.map(c=>`<button class="chip" data-act="nouveau" data-v="${esc(c)}">${esc(c)} · ${CYC[ROOT.classes[c].cy||'S'].short}</button>`).join('')}</div>`:''}
-    <p class="small muted">Pas de QR ? Demandez au professeur d’afficher le QR de la classe : il donne la liste des élèves et ouvre la séance.</p></section>
   <section class="card demo-carte"><h3>Découvrir l’appli</h3><p class="small muted">Un groupe fictif déjà rempli, pour voir tous les écrans. Rien n’est enregistré ni envoyé.</p>
     <div class="row wrap"><button class="btn" data-act="demo" data-v="S">Démo Seconde</button><button class="btn" data-act="demo" data-v="T">Démo Terminale</button></div></section>
-  <p class="ver">Demi-fond · appli élève ${APP_VERSION}. Les données restent sur cette tablette : elles partent seulement quand votre groupe les envoie au professeur.</p>`;
+  <p class="ver"><b>Version ${APP_VERSION}</b> · si le professeur annonce une version plus récente, fermez complètement l’appli puis rouvrez-la. Les données restent sur cette tablette : elles partent seulement quand votre groupe les envoie au professeur.</p>`;
 }
 /* ----- Groupe ----- */
 function vGroupe(){
@@ -420,6 +424,7 @@ document.addEventListener('click',async e=>{
   if(ds.stp&&V.tab==='seance'){const d=ds.rn!=null?sd(G.runners[+ds.rn],V.sid):curD();const o=JSON.parse(ds.o||'{}');const isT=ds.tm==='1';const dl_=+ds.dl;const cur=isT?parseT(getPath(d,ds.stp)):num(getPath(d,ds.stp));
     let nv=cur==null?(o.s0!=null?o.s0:(o.mn!=null?o.mn:0)):cur+dl_;if(o.mn!=null)nv=Math.max(o.mn,nv);if(o.mx!=null)nv=Math.min(o.mx,nv);nv=R(nv*10)/10;
     setPath(d,ds.stp,isT?fT(nv):String(nv).replace('.',','));if(ds.stp==='vj'){const m=vmaOf(G.runners[V.ri||0],V.sid);if(m!=null&&Math.abs(nv-m)<0.05)delete d.vj}
+    if(ds.bin&&ds.rn!=null)G.runners.forEach((r,j)=>{if(j!==+ds.rn){const dd=sd(r,V.sid);dd.ct=JSON.parse(JSON.stringify(d.ct||{}))}});   /* v4.3 : contrat d'équipe recopié */
     fixP(d);saveS();return keepScroll(render)}
   if(ds.set!==undefined&&V.tab==='seance'){const d=ds.rn!=null?sd(G.runners[+ds.rn],V.sid):curD();let val=ds.v;if(getPath(d,ds.set)===val&&!ds.set.startsWith('bl.cr'))val='';setPath(d,ds.set,val);fixP(d);saveS();return keepScroll(render)}
   if(ds.tog&&V.tab==='seance'){const d=ds.rn!=null?sd(G.runners[+ds.rn],V.sid):curD();const x=d[ds.tog]=d[ds.tog]||[];const i=x.indexOf(ds.v);const met=i<0;

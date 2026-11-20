@@ -8,7 +8,7 @@
 const AVT=(n,b,c)=>window.EPSAvatar?EPSAvatar(n,b,c):'',AVM=n=>window.EPSAvatar?EPSAvatar.mini(n):'';
 
 'use strict';
-const APP_VERSION='v4.3 · 20/11/2026';
+const APP_VERSION='v5.0 · 20/11/2026';
 const CLE='dfe-v1';
 /* Envoi en ligne : le lien de dépôt (Nuage, « Demande de fichier ») arrive avec le QR de la classe.
    Il n'apparaît jamais à l'écran. Vide = envoi en ligne pas encore activé (le QR code reste possible). */
@@ -363,7 +363,7 @@ function demandeBilan(act){const BM=bilansManquants(V.sid);
 function resumeTxt(run,sid){const d=run.seances&&run.seances[sid];if(!hasData(d))return '';if(d.st)return ST_TXT[d.st];const [t,n]=tenR(run,sid);const L=[];
   if(n)L.push(t+'/'+n+' projets tenus');const rp=num((d.bl||{}).rpe);if(rp!=null)L.push('effort '+rp+'/10');if(d.ad)L.push('pratique adaptée');if(d.cx&&d.cx.n)L.push('coach remplaçant');return L.join(' · ')||'séance commencée'}
 /* bilan fait ? null = rien saisi ; absent = pas de bilan ; ne court pas = bilan de rôle */
-function bilanOK(r,sid){const d=r.seances&&r.seances[sid];if(!hasData(d))return null;if(d.st==='abs')return true;if(d.st==='bl')return filled(getPath(d,'bl.nx'));return stepDone(['bilan'],d)}
+function bilanOK(r,sid){const d=r.seances&&r.seances[sid];if(!hasData(d))return null;if(d.st==='abs')return true;if(d.st==='bl')return true;return stepDone(['bilan'],d)}
 function bilansManquants(sid){return G.runners.map((r,k)=>[r,k]).filter(([r])=>bilanOK(r,sid)===false)}
 function vEnvoi(){
   const b=G,sid=V.sid,s=SBY[sid],ev=b.envoi[sid]||{},LET='ABC';const st=sessState(b,sid);

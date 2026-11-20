@@ -8,11 +8,11 @@ const curBin=()=>DB.binomes.find(b=>b.id===V.bin);
 const cyOf=b=>(b&&b.cy)||'S';
 const curSessOf=b=>sessOf(cyOf(b));
 const curSess=()=>sessOf(cyOf(curBin()));
-function sd(run,sid){run.seances=run.seances||{};return run.seances[sid]=run.seances[sid]||{}}
+function sd(run,sid){run.seances=run.seances||{};return run.seances[sid]=run.seances[sid]||(isM(run)?{v5:1}:{})}
 const curD=()=>sd(curBin().runners[V.ri||0],V.sid);
 function setPath(o,path,val){const ks=path.split('.');let x=o;for(let i=0;i<ks.length-1;i++){const k=ks[i];if(x[k]==null)x[k]=/^\d+$/.test(ks[i+1])?[]:{};x=x[k]}x[ks[ks.length-1]]=val}
 function getPath(o,path){return path.split('.').reduce((x,k)=>x==null?undefined:x[k],o)}
-const hasData=d=>!!d&&Object.keys(d).some(k=>k!=='_v');
+const hasData=d=>!!d&&Object.keys(d).some(k=>k!=='_v'&&k!=='v5');
 function saveS(){const b=curBin();if(b&&V.sid){b.mod=b.mod||{};b.mod[V.sid]=Date.now();const r=b.runners[V.ri||0];if(r&&r.imp)delete r.imp[V.sid];b.dates=b.dates||{};if(!b.dates[V.sid])b.dates[V.sid]=today()}save()}
 /* VMA effective d'une séance (VMA du jour modifiée, sinon mesurée) et projets tenus calculés avec elle */
 function effV(run,sid){const d=run.seances&&run.seances[sid];return (d&&num(d.vj))||vmaOf(run,sid)}
@@ -92,7 +92,7 @@ const HELP={
  mine:()=>['Construis ta séance contre ton point faible de T7. Exemples :','· <b>départ trop rapide</b> → 3 × 250 m à l’allure du C1, passage annoncé, 3’ de récup ;','· <b>chute sur le 2e 500</b> → 4 × 300 m à 110 %, récup 2’ ;','· <b>1’30 hors zone</b> → 3 × 45" à l’allure du projet (la moitié du projet), récup 1’30.','Donne distance ou durée, % de VMA, récupération et répétitions. La 🧮 calcule les temps.'],
  real8:()=>['Écris le temps prévu de chaque répétition (🧮 calculatrice) puis le temps réalisé. <b>Tenu</b> à 2 s près.'],
  pfin:()=>['Fixe tes projets pour l’épreuve : 100 m visé (prise d’allure 3 × 100 m), temps de C1 et C2, passage au 250 m, distance du 1’30. Pars de tes chiffres de T7.'],
- bilan:(b,s)=>['<b>Le coach a vu</b> : ton coach coche ce que tu as bien fait, puis écrit une réussite et un conseil. Des idées de conseils apparaissent selon tes résultats : touche-les pour les ajouter.','<b>Ta foulée vue par le coach</b> (à partir de la S3) : il te regarde courir un tour et coche ✓ ou « à revoir » sur 6 points (regard, buste, bras, pied, respiration, relâchement). Chaque « à revoir » propose un conseil.','<b>Pronostic du coach</b> : avant le départ, le coach écrit ce qu’il pense que tu vas réaliser. Un bon coach se trompe de moins de 3 %.','<b>Le conseil m’a aidé</b> : c’est toi, le coureur, qui juges ton coach.','<b>Effort ressenti (0 à 10)</b> : 3 = je parle en phrases, 5 = par mots, 10 = je ne peux plus parler. <b>Charge</b> = effort × durée (en unités arbitraires, UA) : elle sert à doser l’entraînement.','<b>Projets tenus</b> : calculés tout seuls. Un projet trop prudent (moins de 95 % de ta dernière distance ou de ta VMA) ne compte pas.','<b>La prochaine fois</b> : une seule chose précise que tu changes.']
+ bilan:(b,s)=>['<b>Deux cartes, dans l’ordre.</b> 1. Le coureur écrit : son effort, ce qui a marché, ce qu’il fera la prochaine fois. 2. Le coach remplit « Tu es le coach de… ».','<b>Le coach progresse en 3 niveaux.</b> Niveau 1 : je coche ce que j’ai vu et je choisis un conseil. Niveau 2 : je choisis le chiffre du carnet qui le montre, le conseil en découle. Niveau 3 (Terminale) : je fixe un objectif chiffré, vérifié automatiquement à la séance suivante.','<b>À la séance suivante</b>, le coureur voit l’objectif de son coach et choisit de le prendre comme projet ou non. On lui demande aussi si le conseil reçu l’a aidé.']
 };
 function helpBox(key,b,s){const f=HELP[key];if(!f)return '';const L=f(b,s);
   return `<details class="help"><summary>ⓘ consigne</summary><div>${L.map(x=>'<p>'+x+'</p>').join('')}</div></details>`}
@@ -222,9 +222,8 @@ function sessView(){
   const qrBtn='<button class="btn pri big full" data-act="finseance">Envoyer la séance au prof</button>';
   const phases=`<div class="seg big phase"><button class="chip ${ph==='piste'?'on':''}" data-ph="piste">Sur la piste</button><button class="chip ${ph==='fin'?'on':''}" data-ph="fin">Fin de séance · 5 min</button></div>`;
   if(d.st==='abs')return head+`<section class="card"><h3>${esc(run.prenom)} est absent(e) à cette séance</h3><p class="muted">Rien à remplir. La séance ne compte pas dans ses projets tenus. Le QR de fin de séance le signale au prof.</p></section>`+qrBtn;
-  if(d.st==='bl')return head+`<section class="card"><h3>${esc(run.prenom)} ne court pas aujourd’hui</h3>${AVT('blesse','Tu ne cours pas, mais tu as un rôle : choisis-le ci-dessous.')}<p class="muted">Blessé ou dispensé : je tiens un rôle et je remplis mon bilan de rôle. La séance ne compte pas dans mes projets tenus.</p>
-   <label>Ce qui m’empêche de courir ${txt('mot',d)}</label><p class="small"><b>✎ Mon rôle aujourd’hui</b></p>${segv('bl.role',d,[['coach','coach'],['juge','juge-chrono']])}
-   <label>✎ Ce que j’ai observé / ce que j’ai bien fait dans mon rôle ${txt('bl.nx',d)}</label></section>`+qrBtn;
+  if(d.st==='bl')return head+`<section class="card"><h3>${esc(run.prenom)} ne court pas aujourd’hui</h3>${AVT('blesse','Tu ne cours pas, mais tu restes coach de ton binôme.')}<p class="muted">Blessé ou dispensé : la séance ne compte pas dans mes projets tenus.</p>
+   <label>Ce qui m’empêche de courir ${txt('mot',d)}</label><p class="small"><b>Aujourd’hui, tu restes coach.</b> En fin de séance, ouvre la séance de ton binôme (son prénom en haut) et remplis la carte « Tu es le coach de… ».</p></section>`+qrBtn;
   const blocs=s.blocks.map(bk).filter(B=>phaseOf(B)===ph);
   /* S2, S3, T3, T4 : on calcule ses objectifs avant de courir ; la carte reste EN HAUT, avant et après « Vérifier mes calculs » (elle descendait en bas, sous les blocs). */
   const calcAvant=!M&&HIDE_FIRST.includes(s.id)&&vma;
@@ -235,6 +234,7 @@ function sessView(){
   return head+`<div class="coachline mini ${co.need?'warn':''}"><span>Coach de ${esc(run.prenom)} : <b>${co.n?esc(co.n):'à choisir'}</b>${co.rep?` <span class="tag">remplaçant · ${esc(WHY_TXT[co.why]||'')}</span>`:''}</span>
    <button class="lnk small" data-act="chcoach">${co.rep?'modifier le coach':'changer de coach'}</button></div>
   ${co.need?'<p class="warn small center">Ton coach habituel est absent : choisis un coach remplaçant avant de courir.</p>':''}
+  ${objRecu(b,ri,s)}
   ${d.ad?`<section class="card thin adapt"><p><b>Pratique adaptée</b> (avis médical, asthme, reprise…) : tu peux alterner course et marche, par exemple 1’ de course et 30" de marche. Ton but : la régularité, pas la distance. Tolérances élargies : 3’ à 20 m, 1’30 en zone 2, temps à 4 s.</p></section>`:''}
   ${M?SECU_M:''}
   ${calcAvant?obj:''}
@@ -251,12 +251,12 @@ function sessView(){
 }
 /* ---------- séance découpée en étapes ---------- */
 const RESULT=['ec2','afl1','afl1T','vup','mnote'];
-const STEP_KEY={al4:'al',ct:'ct',grp:'grp',i36:'i36',i36m:'i36',ra:'ra',ra2:'ra2',m130:'m130',warm:'wc',warmT:'wc',pf:'pf',pfT:'pf',situe:'situe',at:'at',pe:'pe',rel5:'rlt',tours:'tr',t3624:'ts',rt:'rt',i112:'c112',rep:'rep',mine:'mi',real8:'r8',pfin:'pfin',mwarm:'mw',mtech:'mt',mall:'ma',mfr:'mf',mpf:'pf',mpe:'pe'};
+const STEP_KEY={al4:'al',ct:'ct',grp:'grp',i36:'i36',i36m:'i36',ra:'ra',ra2:'ra2',m130:'m130',warm:'wc',warmT:'wc',pf:'pf',pfT:'pf',situe:'situe',at:'at',pe:'pe',rel5:'rlt',tours:'tr',t3624:'ts',rt:'rt',i112:'c112',rep:'rep',mine:'mi',real8:'r8',pfin:'pfin',mwarm:'mw',mtech:'mt',mall:'ma',mall2:'ma2',mgam:'mg',mat:'mat',mfr:'mf',mpf:'pf',mpe:'pe'};
 function filled(x){if(x==null||x==='')return false;if(Array.isArray(x))return x.some(filled);if(typeof x==='object')return Object.keys(x).some(k=>filled(x[k]));return true}
 function stepDone(B,d){const [ty,a1]=B;if((d.np||[]).includes(npKey(B)))return true;
   if(ty==='t3m')return c3dist(d.t3m)!=null;if(ty==='ann')return num(d.ann)!=null;
   if(ty==='m3')return m3dist(d[a1])!=null;if(ty==='m1000')return parseT(d[a1]&&d[a1].t)!=null;if(ty==='mpause')return filled(d[a1]);
-  if(ty==='bilan'){const s=SBY[V.sid];return (!s||!voit('rpe',s)||filled(getPath(d,'bl.rpe')))&&(filled(getPath(d,'bl.reu'))||filled(getPath(d,'bl.nx')))}
+  if(ty==='bilan')return filled(getPath(d,'bl.rpe'))&&filled(getPath(d,'bl.nx'))&&(filled(getPath(d,'bl.cr'))||filled(getPath(d,'bl.con'))||filled(getPath(d,'bl.pfc'))||filled(getPath(d,'bl.ret')))
   if(ty==='c3')return c3dist(d[a1])!=null;if(ty==='p130')return num(d[a1]&&d[a1].ec)!=null;if(ty==='c500')return parseT(d[a1]&&d[a1].t)!=null;
   if(ty==='txt'||ty==='ser'||ty==='entre')return filled(d[a1]);if(ty==='warm'||ty==='warmT')return filled(d.wc)||filled(d.warm);return filled(getPath(d,STEP_KEY[ty]||ty))}
 /* deux temps : sur la piste (le coach note l'essentiel, quelques secondes par course) et en fin de séance (réflexion, bilan) */
@@ -471,7 +471,7 @@ function blockView(b,s,run,d,vma){
      <p class="small"><b>*</b> Attention : ce test peut avoir tendance à surestimer très légèrement la VMA.</p>
 </section>`}
   if(ty==='ser'){const rows=d[a1]||[];
-    return `<section class="card"><h3>${esc(a2)} ${who('C')}</h3><p class="muted small">En alternance dans le binôme : la course de l’un est la récupération de l’autre. Temps prévu calculé avec ${s.id[0]==='s'?'ta vitesse sur 3’ (ou ta VMA estimée, quand c’est indiqué)':'ta VMA'}.</p>
+    return `<section class="card"><h3>${esc(a2)} ${who('C')}</h3><p class="muted small">${isM(run)?`Toujours un pied au sol. Récupération : ${esc(a3[0][2]||'1’30')} de marche lente entre deux. Temps prévu calculé avec ta vitesse de marche.`:`En alternance dans le binôme : la course de l’un est la récupération de l’autre. Temps prévu calculé avec ${s.id[0]==='s'?'ta vitesse sur 3’ (ou ta VMA estimée, quand c’est indiqué)':'ta VMA'}.`}</p>
      ${a3.map((r,i)=>{const pv=prevu(r[0],pctRow(r),vma);const t=parseT(rows[i]&&rows[i].tr);const ok=t!=null&&pv?Math.abs(t-pv)<=2:null;
       return `<div class="srow s400"><b class="sl">${i+1}. ${r[0]} m ${okb(ok)}</b><div class="cible400"><span>À faire en</span><b>${pv?fT(pv):'?'}</b></div>
        <label>Réalisé ${tstp(`${a1}.${i}.tr`,d,{min:10,max:300,start:pv?R(pv):60,chk:pv?near(pv,0.2):null,peu:1})}</label>${t!=null&&pv?`<span class="small ${ok?'ok':'ko'}">${t-pv>=0?'+':'−'}${R(Math.abs(t-pv))} s</span>`:''}</div>`}).join('')}</section>`}
@@ -535,30 +535,59 @@ const voit=(f,s)=>nivS(s)>=NOTION[f];
 const neuf=(f,s)=>nivS(s)===NOTION[f]?' <span class="tag neuf">nouveau</span>':'';
 const puces=(f,L,d)=>{const c=getPath(d,f)||'';return `<div class="sugg">${L.map(x=>`<button class="chip sg ${c.includes(x)?'on':''}" data-sugg="${esc(x)}" data-fld="${f}">${c.includes(x)?'✓':'＋'} ${esc(x)}</button>`).join('')}</div>`};
 const autre=(f,d)=>`<details class="help"><summary class="small">✎ Écrire autre chose (facultatif)</summary><div>${txt(f,d)}</div></details>`;
+/* =====================================================================
+   v5.0 · BILAN : deux cartes, une seule voix chacune.
+   1. « Léa écrit » : mon effort · ce qui a marché · la prochaine fois (+ le conseil reçu la fois d'avant m'a-t-il aidé ?)
+   2. « Tu es le coach de Léa » : ce que j'ai vu → (niv. 2) quel chiffre le montre → mon conseil → (niv. 3) mon objectif
+   Champs gardés (anciens carnets et outil prof) : bl.rpe, bl.du, bl.reu, bl.nx, bl.aide, bl.cr, bl.con ; nouveaux : bl.ch, bl.obj, bl.pfc, bl.ret
+   ===================================================================== */
+const choix=(f,L,d)=>{const c=getPath(d,f)||'';return `<div class="choix">${L.map(x=>`<button type="button" class="chip ch ${c===x?'on':''}" data-set="${f}" data-v="${esc(x)}">${esc(x)}</button>`).join('')}</div>`};
+function obsDe(s,run){const M=isM(run);if(M&&SBYM_OLD[s.id]===s)return null;return (M?OBS_M:OBS_C)[s.id]||null}
 function bilanView(s,run,d,t,n,v){
-  const cr=getPath(d,'bl.cr')||[];const ob=getPath(d,'bl.ob')||{};const sg=suggest(s,run,d,v).concat(voit('ob',s)?FOULEE.filter((f,i)=>String(ob[i])==='0').map(f=>f[1]):[]).slice(0,6);const con=getPath(d,'bl.con')||'';
-  /* Seconde : bilan à toucher (texte facultatif) */
-  const SEC=s.id[0]==='s',ok75=n&&t/n>=.75;
-  const reuL=(ok75?['J’ai tenu mes projets']:[]).concat(['J’ai été régulier','J’ai bien géré mon départ','J’ai couru sans m’arrêter','J’ai bien coaché mon binôme']),gen=['Partir moins vite','Être plus régulier','Écouter les temps de passage','Accélérer à la fin'];
-  const conL=sg.concat(gen).slice(0,6),nxL=gen.concat(['Mieux coacher mon binôme']);
-  /* v3.1 : chaque partie du bilan a un vrai titre (bandeau bleu = le coach remplit, orange = je remplis) */
-  return bilanTitres(`<section class="card bilan"><h3>Bilan${SEC?' <span class="muted small">· 1 minute, tout se touche</span>':''}</h3>
-   <p class="small"><b>⏱ Le coach a vu</b></p><div class="checks">${s.crit.map((c,i)=>`<button class="chk ${cr[i]?'on':''}" data-set="bl.cr.${i}" data-v="${cr[i]?'':'1'}">${cr[i]?'☑':'☐'} ${esc(c)}</button>`).join('')}</div>
-   ${voit('ob',s)?`<details class="help"${Object.keys(ob).length?' open':''}><summary>⏱ Ta foulée vue par le coach${neuf('ob',s)} <span class="muted">(regarde-le courir 1 tour : ✓ ou à revoir)</span></summary><div class="obs">${FOULEE.map((f,i)=>`<div class="row wrap"><span class="f1 small">${esc(f[0])}</span>${segv('bl.ob.'+i,d,[['1','✓'],['0','à revoir']])}</div>`).join('')}</div></details>`:''}
-   ${SEC?`<p class="small"><b>⏱ Ta réussite</b> <span class="muted">(touche ce qui est vrai)</span></p>${puces('bl.reu',reuL,d)}${autre('bl.reu',d)}
-   <p class="small"><b>⏱ Ton conseil</b> <span class="muted">(touche le conseil à lui donner)</span></p>${puces('bl.con',conL,d)}${autre('bl.con',d)}`:`<p class="small"><b>⏱ Ta réussite</b></p>${puces('bl.reu',reuL,d)}<label>${txt('bl.reu',d)}</label><p class="small"><b>⏱ Ton conseil</b></p>${puces('bl.con',conL,d)}<label>${txt('bl.con',d)}</label>`}
-   ${false&&sg.length&&voit('sugg',s)?`<p class="small"><b>💡 Idées de conseils</b>${neuf('sugg',s)} <span class="muted">(d’après les résultats · touche pour ajouter)</span></p><div class="sugg">${sg.map(x=>`<button class="chip sg ${con.includes(x)?'on':''}" data-sugg="${esc(x)}">＋ ${esc(x)}</button>`).join('')}</div>`:''}
-   ${voit('aide',s)?`<p class="small"><b>✎ Le conseil de mon coach m’a aidé</b>${neuf('aide',s)}</p>${segv('bl.aide',d,[['1','oui'],['0','non']])}`:''}
-   ${voit('rpe',s)?`<p class="small"><b>✎ Effort ressenti sur la séance</b>${neuf('rpe',s)}${SEC?'':' <span class="muted">(0 repos … 10 maximal)</span>'}</p>
-   ${SEC?`<div class="rpe r5">${[[2,'facile'],[4,'moyen'],[6,'dur'],[8,'très dur'],[10,'à fond']].map(([k,l])=>`<button class="chip r${k} ${String(getPath(d,'bl.rpe'))===String(k)?'on':''}" data-set="bl.rpe" data-v="${k}">${l}</button>`).join('')}</div>`:`<div class="rpe">${[0,1,2,3,4,5,6,7,8,9,10].map(k=>`<button class="chip sm r${k} ${String(getPath(d,'bl.rpe'))===String(k)?'on':''}" data-set="bl.rpe" data-v="${k}">${k}</button>`).join('')}</div>`}
-   ${SEC?'':`<p class="small rpel">${getPath(d,'bl.rpe')!=null&&getPath(d,'bl.rpe')!==''?RPE_TXT[+getPath(d,'bl.rpe')]:'Touche le chiffre qui correspond à ton effort.'}</p>`}
-   ${SEC?'':`<div class="row wrap"><label>✎ Durée de pratique (min) ${stp('bl.du',d,{step:5,min:10,max:120,start:60,ph:'60'})}</label>${out('Charge de la séance',chargeOf(d)!=null?chargeOf(d)+' UA':'–')}</div>`}`:''}
-   ${true?'':`<details class="help"><summary>FC (facultatif)</summary><div><label>FC en fin de série (/min), pouls 15" × 4 ${stp('bl.fc',d,{step:4,min:60,max:240,start:160,chk:CHK.fc})}</label></div></details>`}
-   <div><p class="small"><b>✎ Mon rôle aujourd’hui</b></p>${segv('bl.role',d,[['coach','coach'],['juge','juge-chrono']])}</div>
-   <div class="outs">${out('Projets tenus aujourd’hui',n?t+' / '+n:'–','hi')}</div>
-   ${voit('nx',s)?(SEC?`<p class="small"><b>✎ La prochaine fois, je…</b>${neuf('nx',s)}</p>${puces('bl.nx',nxL,d)}${autre('bl.nx',d)}`:`<p class="small"><b>✎ La prochaine fois, je…</b>${neuf('nx',s)}</p>${puces('bl.nx',nxL,d)}<label>${txt('bl.nx',d)}</label>`):''}</section>`);
+  const b=curBin(),ri=V.ri||0,co=coachOf(b,ri,s.id),M=isM(run),P=esc(run.prenom),C=co.n?esc(co.n):'Le coach',SEC=s.id[0]==='s',niv=NIV_COACH[s.id]||1;
+  const bt=x=>`<p class="bti">${x}</p>`,F=run.sexe==='F',gn=x=>F?x.replace(/\bseul\b/g,'seule').replace(/\bactif\b/g,'active').replace(/\bassis\b/g,'assise'):x;
+  /* ---- carte 1 : le coureur ---- */
+  const ps=prevSid(s.id),pd=ps&&run.seances&&run.seances[ps],pc=pd&&!pd.st&&pd.bl&&pd.bl.con,pco=ps?coachOf(b,ri,ps):null;
+  const aide=pc&&pco&&pco.n&&pco.n===co.n?`<p class="bq">${C} t’avait conseillé : « ${esc(pc)} »</p>${bt('Ce conseil t’a-t-il aidé aujourd’hui ?')}${segv('bl.aide',d,[['1','oui'],['0','non']])}`:'';
+  const ok75=n&&t/n>=.75,verbe=M?'marché':'couru';
+  const reuL=(ok75?['J’ai tenu mes projets']:[]).concat(['J’ai été régulier','J’ai bien géré mon départ',M?'J’ai marché sans jamais courir':'J’ai couru sans m’arrêter']).slice(0,4);
+  const nxL=['Partir moins vite','Être plus régulier','Écouter les temps de passage',M?'Garder ma technique quand c’est dur':'Accélérer à la fin'];
+  const rpe=SEC?`<div class="rpe r5">${[[2,'facile'],[4,'moyen'],[6,'dur'],[8,'très dur'],[10,'à fond']].map(([k,l])=>`<button class="chip r${k} ${String(getPath(d,'bl.rpe'))===String(k)?'on':''}" data-set="bl.rpe" data-v="${k}">${l}</button>`).join('')}</div>`
+   :`<div class="rpe">${[0,1,2,3,4,5,6,7,8,9,10].map(k=>`<button class="chip sm r${k} ${String(getPath(d,'bl.rpe'))===String(k)?'on':''}" data-set="bl.rpe" data-v="${k}">${k}</button>`).join('')}</div><p class="small rpel">${getPath(d,'bl.rpe')!=null&&getPath(d,'bl.rpe')!==''?RPE_TXT[+getPath(d,'bl.rpe')]:'0 repos … 10 maximal'}</p>
+     <div class="row wrap"><label>Durée de pratique (min) ${stp('bl.du',d,{step:5,min:10,max:120,start:60,ph:'60'})}</label>${out('Charge de la séance',chargeOf(d)!=null?chargeOf(d)+' UA':'–')}</div>`;
+  const c1=`<div class="bcard cour"><h4><span>✎</span> ${P} écrit</h4>${n?`<p class="small muted">Projets tenus aujourd’hui : <b>${t} / ${n}</b></p>`:''}
+    ${aide}${bt('Mon effort')}${rpe}${bt('Ce qui a marché aujourd’hui')}${choix('bl.reu',reuL,d)}${bt('La prochaine fois, je…')}${choix('bl.nx',nxL,d)}${SEC?'':autre('bl.nx',d)}</div>`;
+  /* ---- carte 2 : le coach ---- */
+  const obs=obsDe(s,run),cr=getPath(d,'bl.cr')||[];
+  const vu=(obs||s.crit).map((c,i)=>`<button class="chk ${cr[i]?'on':''}" data-set="bl.cr.${i}" data-v="${cr[i]?'':'1'}">${cr[i]?'☑':'☐'} ${obs?P+' '+esc(gn(c)):esc(c)}</button>`).join('');
+  const ob=getPath(d,'bl.ob')||{};
+  const foulee=!M&&voit('ob',s)?`<details class="help"${Object.keys(ob).length?' open':''}><summary>Sa foulée <span class="muted">(regarde-${F?'la':'le'} courir 1 tour)</span></summary><div class="obs">${FOULEE.map((f,i)=>`<div class="row wrap"><span class="f1 small">${esc(f[0])}</span>${segv('bl.ob.'+i,d,[['1','✓'],['0','à revoir']])}</div>`).join('')}</div></details>`:'';
+  const ch=chiffres(s,Object.assign({},d),v),nC=SEC?2:3,chL=ch.slice(0,nC),chk=getPath(d,'bl.ch'),chx=ch.find(x=>x.k===chk);
+  let suite='';
+  const objBloc=()=>{const L=(OBJ_PAR[M?'m':'c']||{})[s.id];if(!L||niv<3)return '';const k=getPath(d,'bl.obj.k'),D=OBJ_T[k],ns=nextSid(s.id),nsN=ns?(SBY[ns]||{}).n:'';
+    const champ=!D?'':D.time?tstp('bl.obj.v',d,{min:30,max:1000,start:k==='p250'?60:k==='mp500'?240:480}):stp('bl.obj.v',d,{step:k==='p130'||k==='m3p'?5:1,min:0,max:700,start:k==='p130'?300:k==='m3p'?400:k==='mec2'?15:2});
+    return `${bt(`Ton objectif pour ${P} en ${nsN}`)}<p class="small muted">Tu règles toi-même la valeur. Elle sera vérifiée automatiquement en ${nsN}.</p>${segv('bl.obj.k',d,L.map(x=>[x,OBJ_T[x].t]))}
+      ${D?`<div class="row wrap"><label>${esc(D.t)} ${D.max?'(au plus, ':'('}${D.u==='m'?'mètres':'secondes'})${champ}</label></div>`:''}`};
+  if(EP_BLANCHE.includes(s.id)){const sig=(ch.find(x=>x.sig!=='ok')||{}).sig,pre=sig==='fin'?'fin':sig==='projHaut'||sig==='projBas'?'proj':sig==='vite'||sig==='plotTot'?'dep':null;
+    const PF=[['dep','Départ trop rapide'],['fin','Fin qui s’effondre'],['proj',M?'Projet du 3’ mal réglé':'Projet du 1’30 mal réglé']];
+    suite=`${chL.length?`<div class="chif">${chL.map(x=>`<span>${esc(x.txt)}</span>`).join('')}</div>`:''}${bt(`Son point faible, c’est…`)}${pre?`<p class="small muted">Les chiffres montrent plutôt : <b>${PF.find(x=>x[0]===pre)[1].toLowerCase()}</b>.</p>`:''}${segv('bl.pfc',d,PF)}${objBloc()}`}
+  else if(EP_FINALE.includes(s.id)){
+    suite=`${chL.length?`<div class="chif">${chL.map(x=>`<span>${esc(x.txt)}</span>`).join('')}</div>`:''}${bt('Ce que je retiens comme coach')}${choix('bl.ret',['Annoncer les passages plus tôt','Donner moins de consignes, plus précises','Regarder sa technique, pas seulement le chrono','J’ai bien coaché : mes annonces l’ont aidé'],d)}`}
+  else{
+    let con=[];
+    if(niv>=2){suite+=bt('Quel chiffre le montre ?')+(chL.length?`<div class="choix">${chL.map(x=>`<button type="button" class="chip ch ${chk===x.k?'on':''}" data-set="bl.ch" data-v="${esc(x.k)}">${esc(x.txt)}</button>`).join('')}</div>`:`<p class="small muted">Remplissez d’abord les résultats de la séance : les chiffres apparaîtront ici.</p>`);
+      if(chx)con=(CONSEILS[chx.sig]||[]).slice()}
+    else ch.filter(x=>x.sig!=='ok').slice(0,2).forEach(x=>con=con.concat(CONSEILS[x.sig]||[]));
+    con=[...new Set(con.concat(CONSEILS_GEN))].slice(0,4);
+    suite+=bt(niv>=2&&!chx?'Ton conseil <span class="muted small">(choisis d’abord le chiffre)</span>':'Ton conseil')+choix('bl.con',con,d)+autre('bl.con',d)+objBloc()}
+  const c2=`<div class="bcard coach"><h4><span>⏱</span> Tu es le coach de ${P}</h4><p class="small muted">${C} remplit · niveau ${niv} : ${['','je constate','je le prouve par un chiffre','je fixe un objectif mesurable'][niv]}</p>
+    ${bt('Ce que j’ai vu')}<div class="checks">${vu}</div>${foulee}${suite}</div>`;
+  return `<section class="card bilan"><h3>Bilan</h3>${c1}${c2}</section>`;
 }
-const bilanTitres=h=>h.replace('</h3>','</h3><p class="blég"><span class="coach">⏱ le coach remplit</span><span class="moi">✎ je remplis</span></p>').replace(/<p class="small"><b>⏱ /g,'<p class="btit coach"><b>⏱ ').replace(/<p class="small"><b>✎ /g,'<p class="btit moi"><b>✎ ').replace(/<p class="small"><b>💡 /g,'<p class="btit moi"><b>💡 ');
+/* v5.0 : début de séance — l'objectif fixé par le coach la fois d'avant */
+function objRecu(b,ri,s){const run=b.runners[ri],ps=prevSid(s.id),pd=ps&&run.seances&&run.seances[ps],o=pd&&pd.bl&&pd.bl.obj;if(!o||!o.k||o.v==null||o.v==='')return '';const D=OBJ_T[o.k];if(!D)return '';
+  const d=sd(run,s.id),cn=coachOf(b,ri,ps).n,val=D.time?fT(parseT(o.v)):o.v+' '+D.u;
+  return `<section class="card thin objrecu"><p><b>🎯 L’objectif de ${esc(cn||'ton coach')} pour toi :</b> ${esc(D.t)} ${D.max?'au plus ':''}<b>${esc(val)}</b></p>${segv('obp',d,[['oui','Je le prends comme projet'],['non','Je garde le mien']])}</section>`}
 
 /* ---------- compteur et chrono en direct (coach) ---------- */
 let LIVE=null;
@@ -652,9 +681,21 @@ function progView(){
    PARCOURS MARCHE (élève asthmatique ou avis médical) — blocs de séance
    ===================================================================== */
 const SECU_M=`<section class="card thin adapt"><p><b>🫁 Avant de marcher</b> : traitement 15 min avant si ton médecin l’a prescrit, inhalateur <b>sur toi</b>, échauffement progressif. <b>Arrête-toi et préviens le prof</b> si tu siffles, tousses, ou si ta poitrine serre. Règle : un pied toujours au sol, sinon c’est de la course.</p></section>`;
-function blocM(b,s,run,d,v){const [ty,a1,a2]=b;const sx=run.sexe==='F'?'F':'G',T=s.id[0]==='t';
+function blocM(b,s,run,d,v){const [ty,a1,a2,a3]=b;const sx=run.sexe==='F'?'F':'G',T=s.id[0]==='t';
   const tog=(k,L)=>{const x=d[k]||[];return `<div class="seg">${L.map(o=>`<button class="chip sm ${x.includes(o[0])?'on':''}" data-tog="${k}" data-v="${o[0]}">${o[1]}</button>`).join('')}</div>`};
-  if(ty==='mwarm')return `<section class="card"><h3>Mon échauffement de marche ${who('R')}</h3>${tog('mw',[['trt','Traitement pris (si prescrit)'],['inh','Inhalateur sur moi'],['m10','10 min de marche de plus en plus vite'],['mob','Chevilles, hanches, épaules'],['acc','3 accélérations de marche']])}<p class="muted small">Par temps froid : écharpe ou col devant la bouche pendant l’échauffement.</p></section>`;
+  if(ty==='mwarm')return `<section class="card"><h3>Mon échauffement de marche · 3 parties ${who('R')}</h3>${tog('mw',[['trt','Traitement pris (si prescrit)'],['inh','Inhalateur sur moi']])}
+     <p class="small"><b>1 · Marche progressive</b> · 8 à 10 min, de plus en plus vite, puis chevilles, hanches, épaules</p>${tog('mw',[['m10','Fait']])}
+     <p class="small"><b>2 · Gammes de marche</b> · ${s.blocks.includes('mgam')?'la carte suivante':'4 gammes de la carte des gammes (S1)'}</p>${tog('mw',[['gam','Faites']])}
+     <p class="small"><b>3 · 3 accélérations courtes</b> · 20 à 30 m, sans courir, 1’ de marche lente entre deux</p>${tog('mw',[['acc','Faites']])}
+     <p class="muted small">Ces accélérations courtes préparent les bronches : la gêne respiratoire est souvent moins forte pendant l’effort qui suit. Par temps froid : col ou écharpe devant la bouche.</p></section>`;
+  if(ty==='mgam'){const n=GAM_M.filter(g=>getPath(d,'mg.'+g[0])).length;return `<section class="card"><h3>Gammes de marche ${who('C')}</h3><p class="small">${n} / 4 au choix · 20 à 30 m chacune, retour en marchant lentement. Le coach coche ce qui est fait correctement.</p>
+     <div class="mgam">${GAM_M.map(g=>{const on=!!getPath(d,'mg.'+g[0]);return `<button type="button" class="mg ${on?'on':''}" data-set="mg.${g[0]}" data-v="${on?'':'1'}"><b>${on?'☑':'☐'} ${esc(g[1])}</b><span>${esc(g[2])}</span></button>`}).join('')}</div></section>`}
+  if(ty==='mall2'){const L=[80,90,95];
+    return `<section class="card"><h3>Mes trois allures : 3 × 3’ ${who('CR')}</h3><p class="muted small">3’ à chaque allure, 1’30 de marche lente entre deux. Cible = distance en 3’ à ce pourcentage de ta vitesse de marche (à 10 m près).</p>
+     ${L.map((p,i)=>{const cib=v?R(dist(180,v*p/100)/5)*5:null,r=num((d.ma2||[])[i]);return `<div class="srow"><b class="sl">${p} % ${r!=null&&cib?okb(Math.abs(r-cib)<=10):''}</b><span class="pill">cible ${cib?cib+' m':'– (mesure ta vitesse)'}</span><label>Réalisé (m) ${stp('ma2.'+i,d,{step:5,min:100,max:700,start:cib||300})}</label></div>`}).join('')}</section>`}
+  if(ty==='mat'){const c=getPath(d,'mat.c');const AT={dep:['A · Mon départ','3 × 200 m à l’allure de mon 1000 m visé, 1’30 de récup : le coach annonce le temps à 100 m. But : ne jamais être en avance au 100 m.'],fin:['B · Ma fin de course','2 × 400 m : 300 m à l’allure du 1000 m, puis j’accélère sur les 100 derniers mètres sans courir. 2’ de récup.'],tec:['C · Ma technique','4 gammes de marche, puis 4 × 100 m en technique parfaite (le coach vérifie : un pied au sol, jambe tendue, bras actifs). 1’ de récup.']};
+    return `<section class="card"><h3>Atelier : mon point faible ${who('CR')}</h3><p class="small">Choisis l’atelier qui correspond au point faible de ton épreuve blanche.</p>${segv('mat.c',d,Object.entries(AT).map(([k,x])=>[k,x[0]]))}
+     ${c&&AT[c]?`<p class="small">${AT[c][1]}</p><p class="small"><b>Réussi ?</b></p>${segv('mat.ok',d,[['ok','oui'],['moyen','en partie'],['non','non']])}`:''}</section>`}
   if(ty==='mtech')return `<section class="card"><h3>Ma technique de marche ${who('C')}</h3><p class="muted small">Le coach coche ce qu’il voit.</p>${tog('mt',[['sol','Un pied toujours au sol'],['tal','Pose du talon, déroulé du pied'],['bra','Bras actifs, coudes à 90°'],['bus','Buste droit, regard loin'],['bas','Le bassin tourne']])}</section>`;
   if(ty==='m3'){const c=d[a1]||{};const dd=m3dist(c),pr=num(c.v),mx=a1==='mx';const sug=v?R(dist(180,v)/5)*5:null;const e=dd!=null&&pr!=null?dd-pr:null,pj=projM(e);
     return `<section class="card"><h3>${esc(a2)} ${who('CR')}</h3>
@@ -665,7 +706,8 @@ function blocM(b,s,run,d,v){const [ty,a1,a2]=b;const sx=run.sexe==='F'?'F':'G',T
     return `<section class="card"><h3>${esc(a2)} ${who('CR')}</h3>
      <label>Mon temps visé ${tstp(a1+'.tp',d,{min:300,max:1000,start:sug||480,ph:sug?fT(sug):''})}</label>
      <p class="muted small">${pj?`Passage visé au 500 m : <b>${fT(pj/2)}</b> · par tour de 200 m : <b>${fT(pj/5)}</b>.`:'5 tours de 200 m.'}${sug?' À ta vitesse de marche : '+fT(sug)+'.':''}</p>
-     <div class="row wrap"><label>Passage au 500 m ${tstp(a1+'.ps',d,{min:150,max:500,start:pj?R(pj/2):240})}</label><label>Temps final ${tstp(a1+'.t',d,{min:300,max:1000,start:pj||480})}</label></div>
+     ${a3?`<p class="small">Passages visés : <b>${pj?[1,2,3].map(k=>fT(pj*k/4)).join(' · '):'–'}</b> (250 · 500 · 750 m). Le coach annonce chaque passage.</p>`:''}
+     <div class="row wrap">${a3?`<label>Passage au 250 m ${tstp(a1+'.p1',d,{min:60,max:300,start:pj?R(pj/4):120})}</label>`:''}<label>Passage au 500 m ${tstp(a1+'.ps',d,{min:150,max:500,start:pj?R(pj/2):240})}</label>${a3?`<label>Passage au 750 m ${tstp(a1+'.p3',d,{min:200,max:800,start:pj?R(pj*3/4):360})}</label>`:''}<label>Temps final ${tstp(a1+'.t',d,{min:300,max:1000,start:pj||480})}</label></div>
      <div class="outs">${out('Temps',tt?fT(tt):'–','hi')}${out('Vitesse',tt?fV(3600/tt)+' km/h':'–')}${out('Note du 1000 m /8',tt?String(noteMt(sx+'1000',tt)).replace('.',','):'–')}${out('Projet (± 10 s)',tt!=null&&pj!=null?(Math.abs(tt-pj)<=10?'✓ tenu':'✗ écart '+(tt-pj>0?'+':'−')+R(Math.abs(tt-pj))+' s'):'–')}${out('2e 500 − 1er',ps&&tt?((tt-ps-ps)>=0?'+':'−')+R(Math.abs(tt-ps-ps))+' s':'–')}</div></section>`}
   if(ty==='mall'){const L=[70,80,90];
     return `<section class="card"><h3>Mes trois allures : 3 × 2’ ${who('CR')}</h3><p class="muted small">2’ à chaque allure, 1’ de marche lente entre deux. Cible = distance en 2’ à ce pourcentage de ta vitesse de marche (à 10 m près).</p>

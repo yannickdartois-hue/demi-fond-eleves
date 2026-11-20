@@ -483,3 +483,20 @@ html body .rep span{color:var(--nav-fonce)}
 .s400{flex-wrap:wrap}
 .cible400{display:flex;align-items:baseline;gap:8px;margin:4px 0 6px}.cible400 span{font-weight:700;color:var(--muted,#64748b)}
 .cible400 b{font:900 34px/1 var(--fd,system-ui);font-variant-numeric:tabular-nums;letter-spacing:.5px}
+
+/* v5.0 : gammes de marche */
+.mgam{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.mg{text-align:left;font:inherit;background:var(--card2,#f3f5f8);border:2px solid transparent;border-radius:14px;padding:10px 12px;cursor:pointer;color:inherit}
+.mg b{display:block;margin-bottom:2px}.mg span{font-size:14px;color:var(--muted,#64748b)}.mg.on{border-color:var(--ok,#15803d);background:#e9f7ee}
+/* v5.0 : bilan en deux cartes */
+.bilan .bcard{border-radius:16px;padding:12px 14px 14px;margin:12px 0;border:2px solid}
+.bilan .bcard h4{margin:0 0 4px;font-size:20px;display:flex;gap:8px;align-items:center}
+.bilan .bcard h4 span{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;color:#fff;font-size:16px}
+.bilan .cour{border-color:#f0b37e;background:#fff8f1}.bilan .cour h4 span{background:#c2410c}
+.bilan .coach{border-color:#93c5fd;background:#f3f8ff}.bilan .coach h4 span{background:#1d4ed8}
+.bilan .bti{font-weight:800;margin:14px 0 6px}
+.bilan .bq{background:#fff;border-left:4px solid #1d4ed8;padding:6px 10px;border-radius:8px;margin:8px 0 0;font-size:15px}
+.bilan .choix{display:flex;flex-direction:column;gap:6px}.bilan .choix .ch{text-align:left;justify-content:flex-start;white-space:normal;line-height:1.3;padding:10px 12px}
+.bilan .chif{display:flex;flex-direction:column;gap:4px;margin:10px 0 0}.bilan .chif span{background:#fff;border-radius:8px;padding:6px 10px;font-size:15px;font-weight:600}
+.objrecu p{margin:0 0 8px}
+:root[data-theme="dark"] .bilan .cour,:root[data-theme="dark"] .bilan .coach{background:transparent}

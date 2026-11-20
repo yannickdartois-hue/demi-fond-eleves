@@ -584,13 +584,13 @@ function bilanView(s,run,d,t,n,v){
 }
 /* v5.0 : début de séance — l'objectif fixé par le coach la fois d'avant */
 /* v5.1 : effort ressenti — échelle CR-10 de Borg (1 à 10), curseur coloré, repères de parole ; rien n'est placé au départ */
-const RPE_MOT=['','très, très facile','facile','modéré','un peu difficile','difficile','entre difficile et très difficile','très difficile','entre très difficile et maximal','presque maximal','maximal'];
-const RPE_PAR=['','je pourrais continuer longtemps','je respire calmement','je parle en phrases','je respire vite','je parle par mots','je parle par mots, avec peine','je dis 2 ou 3 mots','je dis un mot','je ne peux plus parler','je ne pourrais pas aller plus loin'];
+const RPE_MOT=['','très, très facile','facile','modéré','un peu difficile','difficile','entre les deux','très difficile','entre les deux','presque maximal','maximal'];
+const RPE_PAR=['','je pourrais continuer des heures','je respire calmement','je peux parler en phrases','je respire vite, je parle en phrases courtes','je ne peux dire que quelques mots','quelques mots, avec peine','je ne peux dire que 2 ou 3 mots','je ne peux répondre que par un mot','je ne peux plus parler','je ne pourrais pas aller plus loin'];
 const RPE_COUL=['','#16a34a','#4caf1f','#84cc16','#c5c814','#facc15','#fbbf24','#fb923c','#f2643a','#ef4444','#991b1b'];
 const rpeLect=v=>v?`<b>${v}</b><span>${RPE_MOT[v]}<small>${RPE_PAR[v]}</small></span>`:'<span>Touche la barre pour placer ton effort</span>';
 const rpeStyle=v=>v?`background:${RPE_COUL[v]};color:${v>=4&&v<=6?'#3d2e00':'#fff'}`:'';
 function rpeSlider(d){let v=num(getPath(d,'bl.rpe'));if(v!=null)v=Math.max(1,Math.min(10,Math.round(v)));
-  return `<p class="small muted" style="margin:-2px 0 12px">Sur l’ensemble de la séance. Fais glisser le rond sur la couleur qui correspond à ton effort.</p>
+  return `<p class="small muted" style="margin:-2px 0 12px">Sur l’ensemble de la séance. Fais glisser le rond sur la couleur qui correspond à ton effort.<br><b>Repère :</b> si on te parlait au moment le plus dur, que pourrais-tu répondre ?</p>
   <div class="rpeS ${v?'':'vide'}"><div class="rpeS-bar"></div><input type="range" class="rpeR" min="1" max="10" step="1" value="${v||5}" data-p="bl.rpe" aria-label="Mon effort de 1 à 10">
   <div class="rpeS-t">${[1,2,3,4,5,6,7,8,9,10].map(k=>`<span class="${k===v?'on':''}">${k}</span>`).join('')}</div><div class="rpeS-e"><span>très facile</span><span>maximal</span></div>
   <div class="rpeS-l" style="${rpeStyle(v)}">${rpeLect(v)}</div></div>`}
@@ -670,6 +670,16 @@ function barTenus(labels,vals){const W=560,H=150,P=10,bw=(W-2*P)/labels.length;c
   return `<div class="chart"><p class="small"><b>Projets tenus par séance</b> <span class="muted">(trait : ¾ = degré 4)</span></p><svg viewBox="0 0 ${W} ${H}" role="img">
    ${vals.map((p,i)=>`<text x="${P+i*bw+bw/2}" y="${H-8}" text-anchor="middle" font-size="12" fill="currentColor" opacity=".7">${labels[i]}</text>${p==null?'':`<rect x="${P+i*bw+6}" y="${Y(p)}" width="${bw-12}" height="${Math.max(2,H-28-Y(p))}" rx="5" fill="${p>=0.75?'var(--ok)':p>=1/3?'var(--acc)':'var(--track)'}"/><text x="${P+i*bw+bw/2}" y="${Y(p)-4}" text-anchor="middle" font-size="11.5" font-weight="700" fill="currentColor">${R(p*100)} %</text>`}`).join('')}
    <line x1="${P}" x2="${W-P}" y1="${Y(0.75)}" y2="${Y(0.75)}" stroke="var(--ok)" stroke-dasharray="6 5"/></svg></div>`}
+/* v5.2 · Terminale : mon ressenti suit-il mon pouls ? (ressenti CR-10 sur la séance, pouls en fin de dernière série) */
+function ressentiPouls(r,L){const P=L.map(s=>{const d=r.seances&&r.seances[s.id];const bl=d&&!d.st&&d.bl||{};return {n:s.n,e:num(bl.rpe),f:num(bl.fc)}}).filter(x=>x.e!=null||x.f!=null);
+  if(!P.length)return '';const B=P.filter(x=>x.e!=null&&x.f!=null);let msg='';
+  if(B.length>=4){const m=a=>a.reduce((s,x)=>s+x,0)/a.length,E=B.map(x=>x.e),F=B.map(x=>x.f),me=m(E),mf=m(F);
+    const cov=B.reduce((s,x)=>s+(x.e-me)*(x.f-mf),0),se=Math.sqrt(E.reduce((s,x)=>s+(x-me)**2,0)),sf=Math.sqrt(F.reduce((s,x)=>s+(x-mf)**2,0));const k=se&&sf?cov/(se*sf):0;
+    msg=k>=0.5?'✓ Ton ressenti suit bien ton pouls : tu sens juste quand tu forces.':k>=0.2?'Ton ressenti suit à peu près ton pouls. Continue à comparer.':'Ton ressenti et ton pouls ne vont pas ensemble : les jours où ton cœur monte le plus, tu ne le sens pas forcément. Écoute mieux ta respiration.'}
+  else msg=`Encore ${4-B.length} séance${4-B.length>1?'s':''} avec le ressenti <b>et</b> le pouls pour savoir si ton ressenti est fiable.`;
+  return `<details class="help"${B.length?' open':''}><summary><b>❤ Mon ressenti et mon pouls</b></summary><div><p class="small">${msg}</p>
+   <div class="tw"><table class="tt"><tr><th></th><th>Ressenti (1 à 10)</th><th>Pouls fin de série</th></tr>${P.map(x=>`<tr><th>${x.n}</th><td>${x.e!=null?`<span class="rpeP" style="${rpeStyle(Math.max(1,Math.min(10,Math.round(x.e))))}">${x.e}</span>`:'–'}</td><td>${x.f!=null?x.f+' /min':'–'}</td></tr>`).join('')}</table></div>
+   <p class="muted small">Le ressenti porte sur toute la séance, le pouls sur la fin de la dernière série : ils ne donnent pas le même chiffre, mais ils doivent monter et descendre ensemble d’une séance à l’autre. Prends ton pouls sur la piste (bouton ❤ avant « Fin de séance »).</p></div></details>`}
 function progView(){
   const b=curBin();const T=cyOf(b)==='T';const L=curSessOf(b);
   return `<section class="card"><h2>Ma progression</h2>${b.runners.map(r=>{let TT=0,NN=0;const pct=[],c3v=[],pj=[],pr=[],t5=[];
@@ -682,7 +692,8 @@ function progView(){
    const dg=degreeOf(TT,NN);const lab=L.map(s=>s.n);const ec=L.map(s=>{const x=ecartOf(s.id,r.seances&&r.seances[s.id]);return x==null?null:R(x)});const ch5=L.map(s=>{const x=ecartT(s.id,r.seances&&r.seances[s.id]);return x==null?null:R(x)});const chg=L.map(s=>chargeOf(r.seances&&r.seances[s.id]||{}));
    const ch=(T?lineChart(lab,[{n:'500 m (meilleur temps)',v:t5,c:'#6366f1'}],{title:'Mon temps sur 500 m',inv:true,fmt:fT}):lineChart(lab,[{n:'Distance du 3’',v:c3v,c:'#0d9488'}],{title:'Ma distance en 3’ (m)'}))
      +lineChart(lab,[{n:'Projet',v:pj,c:'#f04e23',dash:true},{n:'Réalisé',v:pr,c:T?'#6366f1':'#0d9488'}],{title:'1’30 : projet et distance réalisée (m)'})+lineChart(lab,[{n:'Écart au projet du 1’30 et du 3’ (m)',v:ec,c:'#c2412d'}].concat(T?[{n:'Écart au temps visé du 500 m (s)',v:ch5,c:'#4b44d8',dash:true}]:[]),{title:'Mon écart au projet : plus il baisse, mieux je gère mon allure'})+barTenus(lab,pct)+lineChart(lab,[{n:'Charge (effort × durée)',v:chg,c:'#64748b'}],{title:'Ma charge de séance (UA)'});
-   return `<div class="sub"><h3>${esc(r.prenom)}</h3>${ch||'<p class="muted small">Les courbes apparaissent après deux séances remplies.</p>'}
+   const rp=T?ressentiPouls(r,L):'';
+   return `<div class="sub"><h3>${esc(r.prenom)}</h3>${ch||'<p class="muted small">Les courbes apparaissent après deux séances remplies.</p>'}${rp}
     <details class="help"><summary>Tableau des séances</summary><div class="tw"><table class="tt"><tr><th></th><th>${T?'500 m':'3’'}</th><th>1’30 projet</th><th>1’30 réalisé</th><th>Zone</th><th>Tenus</th></tr>${rows}</table></div></details>
     <div class="outs">${out('Projets tenus sur le cycle',NN?TT+' / '+NN+' ('+R(100*TT/NN)+' %)':'–','hi')}${out('Indicateur AFL2',dg?DEG_TXT[dg]:'–')}</div></div>`}).join('')}</section>`;
 }

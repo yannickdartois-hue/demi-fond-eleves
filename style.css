@@ -515,3 +515,4 @@ html body .rep span{color:var(--nav-fonce)}
 .rpeS-e{display:flex;justify-content:space-between;font-size:13px;color:#64748b;margin-top:2px}
 .rpeS-l{display:flex;align-items:center;gap:12px;margin-top:12px;padding:10px 12px;border-radius:12px;font-weight:800;background:#e5e7eb;color:#64748b}
 .rpeS-l b{font-size:34px;line-height:1;min-width:44px;text-align:center}.rpeS-l small{display:block;font-weight:600;opacity:.9;font-size:14px}
+.rpeP{display:inline-block;min-width:30px;padding:2px 8px;border-radius:8px;font-weight:800;text-align:center}

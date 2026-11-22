@@ -27,6 +27,10 @@ function closeModal(){$('#modal').classList.remove('on');liveStop();if(RQ.h){cle
 function keepScroll(fn){const y=window.scrollY;fn();window.scrollTo(0,y)}
 function fixP(d){['p','p2'].forEach(k=>{const p=d[k];if(!p)return;const m=num(p.mg);p.ec=(p.sd&&m!=null)?(p.sd==='av'?-m:m):'';})}
 let AC=null;
+/* v6.0 : coup de sifflet + vibration (eps-sifflet.js) ; false = l'appli bipe comme avant */
+const SIF=k=>{try{return !!(window.EPSSifflet&&EPSSifflet[k]())}catch(e){return false}};
+const SIFBT=()=>window.EPSSifflet?`<div class="row" style="justify-content:flex-end;margin:6px 0">${EPSSifflet.bouton()}</div>`:'';
+const SIFDEM=f=>window.EPSSifflet?EPSSifflet.demander(f):f();
 function beep(f,ms){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f||880;g.gain.value=.25;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+(ms||150)/1000)}catch(e){}}
 
 /* ---------- État ----------
@@ -475,7 +479,7 @@ document.addEventListener('click',async e=>{
   if(ds.chp!==undefined){const p=CPRE[+ds.chp];Object.assign(CH,{w:p[1],r:p[2],n:p[3],mid:p[4]});return render()}
   if(!a)return;
   switch(a){
-    case 'chgo':beep(700,60);return chStart();
+    case 'chgo':return SIFDEM(()=>{beep(700,60);chStart()});
     case 'chpause':{const r=CH.run;if(!r)return;if(r.paused){r.end=Date.now()+r.left*1000;r.paused=false}else r.paused=true;chSave();return render()}
     case 'chstop':chStop();return render();
     case 'seances':return modal(`<h2>Changer de séance</h2><p class="muted small">${CYC[G.cy].label} · ✓ envoyée · ! à envoyer</p><div class="sgrid">${curSessOf(G).map(x=>{const st=sessState(G,x.id);
@@ -607,9 +611,10 @@ function wAff(){const box=document.getElementById('wtimer');if(!box)return;box.h
 function wTimer(o){
   if(o.dur){WT={dur:o.dur,rest:o.dur,run:false,t0:0};wAff();const b=document.getElementById('wtimer');if(b)b.scrollIntoView({block:'nearest',behavior:'smooth'});return}
   if(!WT)return;
+  if(o.act==='go'&&!WT.run&&window.EPSSifflet&&EPSSifflet.choix()===null)return EPSSifflet.demander(()=>wTimer(o));
   if(o.act==='x'){clearInterval(WT.h);WT=null;return wAff()}
   if(o.act==='go'){if(WT.run){WT.rest=wReste();WT.run=false;clearInterval(WT.h)}else{if(WT.rest<=0)WT.rest=WT.dur;WT.t0=Date.now();WT.run=true;clearInterval(WT.h);
-      WT.h=setInterval(()=>{wAff();if(WT&&WT.run&&wReste()<=0){WT.run=false;WT.rest=0;clearInterval(WT.h);wBip();wAff()}},250)}}
+      SIF('depart');WT.h=setInterval(()=>{wAff();if(WT&&WT.run&&wReste()<=0){WT.run=false;WT.rest=0;clearInterval(WT.h);if(!SIF('fin'))wBip();wAff()}},250)}}
   if(o.act==='m'||o.act==='p'){const dl=o.act==='p'?30:-30;if(WT.run){WT.t0+=dl*1000}else WT.rest=Math.max(0,WT.rest+dl)}
   wAff()}
 /* après chaque affichage, le minuteur reste affiché s'il tourne */
@@ -652,7 +657,7 @@ function recAct(a){if(!REC)return;if(a==='x'){clearInterval(REC.h);REC=null;cons
 function recAff(){const main=document.getElementById('main');if(!REC||!main)return;if(V.tab!=='seance'){return}
   let b=document.getElementById('recband');if(!b){b=document.createElement('div');b.id='recband';main.prepend(b)}
   const r=Math.ceil(recReste()),t=Math.floor(r/60)+':'+String(r%60).padStart(2,'0');
-  if(r<=0&&!REC.bip){REC.bip=true;wBip()}
+  if(r<=0&&!REC.bip){REC.bip=true;if(!SIF('reprise'))wBip()}
   const html=`<div class="recband ${r<=0?'fini':''}"><span>${r<=0?'Récupération finie : on repart !':'Récupération '+Math.round(REC.tot/60*2)/2+'’'}${r>0&&REC.cons?'<small style="display:block;font-weight:600">'+REC.cons+'</small>':''}</span><b>${t}</b><span class="rb"><button type="button" class="chip sm" data-rc="m">−30 s</button><button type="button" class="chip sm" data-rc="p">+30 s</button><button type="button" class="chip sm" data-rc="x" aria-label="Fermer">✕</button></span></div>
    ${REC.pouls?`<div class="poulscard"><b>❤ Prends ton pouls maintenant !</b><span>Tout de suite après l’effort, avant qu’il redescende.</span><button type="button" class="poulsgo" data-rc="pl">❤ Touche ici pour compter 15 s</button><button type="button" class="lnk small" data-rc="np">Pas cette fois</button></div>`:''}`;
   if(b.dataset.h!==html){b.innerHTML=html;b.dataset.h=html}}

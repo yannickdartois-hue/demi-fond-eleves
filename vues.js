@@ -602,7 +602,7 @@ function objRecu(b,ri,s){const run=b.runners[ri],ps=prevSid(s.id),pd=ps&&run.sea
 
 /* ---------- compteur et chrono en direct (coach) ---------- */
 let LIVE=null;
-function liveOpen(kind,key){liveStop();const dur=key==='m130'?90:180;LIVE={kind,key,dur,t0:null,laps:[],mid:null,end:null,stage:'ready',b1:false};
+function liveOpen(kind,key){if(window.EPSSifflet&&EPSSifflet.choix()===null)return EPSSifflet.demander(()=>liveOpen(kind,key));liveStop();const dur=key==='m130'?90:180;LIVE={kind,key,dur,t0:null,laps:[],mid:null,end:null,stage:'ready',b1:false};
   try{if(navigator.wakeLock)navigator.wakeLock.request('screen').then(l=>{if(LIVE)LIVE.lock=l;else l.release()}).catch(()=>{})}catch(e){}
   liveRender()}
 function liveStop(){if(!LIVE)return;clearInterval(LIVE.h);try{LIVE.lock&&LIVE.lock.release()}catch(e){}LIVE=null}
@@ -625,17 +625,18 @@ function liveRender(){const L=LIVE;if(!L)return;const run=curBin().runners[V.ri|
     else if(L.stage==='run')body=`<div class="lvt" id="lvt">${fTd(lvEl())}</div>${L.mid!=null?`<p class="center">Passage 250 m : <b>${fTd(L.mid)}</b></p><button class="btn pri huge" data-lv="fin">🏁 Arrivée</button>`:`<button class="btn pri huge" data-lv="p250">Passage 250 m</button>`}<div class="row center"><button class="btn sm ghost" data-lv="quit">Abandonner</button></div>`;
     else body=`<div class="outs">${out('Passage 250 m',fTd(L.mid))}${out('Temps final',fTd(L.end),'hi')}${out('2e 250 − 1er',((L.end-2*L.mid)>=0?'+':'−')+Math.abs(L.end-2*L.mid).toFixed(1).replace('.',',')+' s')}</div>
       <div class="row wrap"><button class="btn pri big" data-lv="save">Enregistrer</button><button class="btn" data-lv="again">Recommencer</button></div>`}
+  if(L.stage==='ready')body+=SIFBT();
   modal(`<h2>⏱ ${L.kind==='dur'?(L.key==='m130'?'1’30 mesuré':'Compter le 3’'):'Chrono 500 m'} · ${esc(run.prenom)}</h2>${body}`);
 }
 function liveTick(){const L=LIVE;if(!L||L.stage!=='run')return;const e=lvEl();const el=$('#lvt');if(el)el.textContent=fTd(e);
-  if(L.kind==='dur'){if(!L.b1&&e>=L.dur/2){L.b1=true;beep(1200,250);liveRender()}if(e>=L.dur){L.stage='stop';beep(700,700);liveRender()}}
+  if(L.kind==='dur'){if(!L.b1&&e>=L.dur/2){L.b1=true;if(!SIF('mi'))beep(1200,250);liveRender()}if(e>=L.dur){L.stage='stop';if(!SIF('fin'))beep(700,700);liveRender()}}
   else if(e>600){liveStop();closeModal()}}
 function liveAct(a,val){const L=LIVE;if(!L)return;const e=lvEl();
-  if(a==='go'){L.t0=Date.now();L.stage='run';L.h=setInterval(liveTick,100);beep(900,120)}
+  if(a==='go'){L.t0=Date.now();L.stage='run';L.h=setInterval(liveTick,100);if(!SIF('depart'))beep(900,120)}
   else if(a==='lap'){L.laps.push(e);if(navigator.vibrate)navigator.vibrate(40)}
   else if(a==='undo'){L.laps.pop()}
   else if(a==='p250'){L.mid=e}
-  else if(a==='fin'){L.end=e;L.stage='done';clearInterval(L.h)}
+  else if(a==='fin'){L.end=e;L.stage='done';clearInterval(L.h);SIF('fin')}
   else if(a==='quit'||a==='again'){const k=L.kind,key=L.key;if(a==='quit'){closeModal();return}liveOpen(k,key);return}
   else if(a==='save'){const d=curD();
     if(L.kind==='dur'){if(L.key==='m130'){d.m130=Object.assign(d.m130||{},{t:String(L.laps.length),p:String(L.end)})}

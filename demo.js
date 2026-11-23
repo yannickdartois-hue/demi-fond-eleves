@@ -50,7 +50,9 @@ function ouvrirDemo(cy){
   const jour0=Date.now()-(nb+1)*7*864e5;
   L.slice(0,nb).forEach((s,i)=>{g.runners.forEach((r,k)=>{r.seances[s.id]=demoSeance(s.id,N[k][2],rnd,r.sexe)});const t=jour0+i*7*864e5;g.dates[s.id]=jour(t);g.mod[s.id]=t;if(i<nb-1)g.sent[s.id]=t+3600e3});
   /* situations à montrer : absence et coach remplaçant, pratique adaptée, VMA du jour modifiée */
-  if(cy==='S'){g.runners[1].seances.s3={st:'abs'};g.runners[0].seances.s3.cx={n:'Tom D.',why:'abs'};g.runners[0].seances.s4.ad='1';g.runners[1].seances.s4.vj='14'}
+  /* v6.1 : absence montrée en S4 (en S3, le binôme est complet pour montrer le 12 × 125 m en alternance, à moitié fait) */
+  if(cy==='S'){g.runners[1].seances.s4={st:'abs'};g.runners[0].seances.s4.cx={n:'Tom D.',why:'abs'};g.runners[0].seances.s4.ad='1';g.runners[1].seances.s5.vj='14';
+    g.runners.forEach((r,k)=>{const x=r.seances.s3;if(x&&Array.isArray(x.s))x.s=x.s.map((v,i)=>i<5-k?v:{})})}
   else{g.runners[0].seances.t4.ad='1'}
   DEMO=true;G=null;ACTIF=null;CLEF=null;attacher(g);V.sid=L[nb-1].id;V.tab='envoi';
   closeModal();render();window.scrollTo(0,0);toast('Mode démo : explore librement, rien n’est enregistré.');

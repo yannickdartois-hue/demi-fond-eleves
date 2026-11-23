@@ -440,7 +440,11 @@ document.addEventListener('click',async e=>{
     dd.wfoot=String(Math.round(t*200));if(G.runners[i].imp)delete G.runners[i].imp[V.sid];saveS();return keepScroll(render)}
   if(ds.wtim!==undefined||ds.wta!==undefined){wTimer(ds.wtim!==undefined?{dur:+ds.wtim}:{act:ds.wta});return}
   if(ds.sugg!==undefined&&V.tab==='seance'){const d=curD(),F=ds.fld||'bl.con';const c=getPath(d,F)||'';if(c.includes(ds.sugg))setPath(d,F,c.replace(ds.sugg,'').replace(/^\s*[;·]\s*|\s*[;·]\s*$/g,'').replace(/\s*;\s*;\s*/,' ; '));else setPath(d,F,(c?c.trim()+' ; ':'')+ds.sugg);saveS();return keepScroll(render)}
-  if(ds.tourn!==undefined&&V.tab==='seance'){V.ri=+ds.tourn;return keepScroll(render)}
+  if(ds.tourn!==undefined&&V.tab==='seance'){
+    /* v6.1 : « Faite · au tour de … » : la fraction est marquée faite chez le coureur, puis on passe au partenaire */
+    if(ds.tf){const d=curD(),[k,i]=ds.tf.split('.');d[k]=d[k]||[];d[k][+i]=Object.assign({},d[k][+i]||{},{ok:1});saveS()}
+    V.ri=+ds.tourn;return keepScroll(render)}
+  if(ds.tfoff&&V.tab==='seance'){const d=curD(),[k,i]=ds.tfoff.split('.');if(d[k]&&d[k][+i])delete d[k][+i].ok;saveS();return keepScroll(render)}
   if(ds.np!==undefined&&V.tab==='seance'){const d=curD();const x=d.np=d.np||[];const i=x.indexOf(ds.np);
     if(i>=0){x.splice(i,1);if(d.npc)delete d.npc[ds.np];saveS();return keepScroll(render)}
     /* « Passer » : on demande toujours pourquoi (le prof le voit dans le suivi) */

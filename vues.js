@@ -136,7 +136,9 @@ function calcOut(){
 const calcLink=(o)=>` <button class="lnk small" data-calc='${JSON.stringify(o)}'>comment ?</button>`;
 
 /* ---------- carte « Mes objectifs du jour » ---------- */
-const HIDE_FIRST=['s3','t3','t4'];
+/* v6.1 : plus de « calcule d'abord, puis vérifie » : les objectifs s'affichent directement.
+   En S3, T3 et T4, la carte reste ouverte en haut de la séance (ailleurs, elle se replie). */
+const OBJ_OUVERTS=['s3','t3','t4'];
 function objectives(s,run,v){const L=[];if(!v)return L;
   s.blocks.forEach(b=>{const [ty,a1,a2,a3]=bk(b);
     if(ty==='i36')L.push([`36"/36" à ${a1} %`,`plot n° ${fP(v*a1/100)} (${R(v*a1/100*10)} m)`,{pct:a1,mode:'dur',sec:36}]);
@@ -157,15 +159,13 @@ const OBJ_INTRO={s2:'Aujourd’hui tu <b>mesures ta VMA</b> au test 36"/24" : la
 function objCard(s,run,d,vMes,v){
   if(OBJ_INTRO[s.id])return `<section class="card obj"><h3>🎯 Mes objectifs du jour</h3><p>${OBJ_INTRO[s.id]}</p></section>`;
   const mod=num(d.vj)!=null&&vMes!=null&&Math.abs(num(d.vj)-vMes)>0.05;const L=objectives(s,run,v);
-  const hide=HIDE_FIRST.includes(s.id)&&!d.vu&&v;const T=s.id[0]==='t';const idx=sessOf(T?'T':'S').findIndex(x=>x.id===s.id);
+  const T=s.id[0]==='t';const idx=sessOf(T?'T':'S').findIndex(x=>x.id===s.id);
   const se_=run.seances||{};const src=T?(idx>=4&&testVma(se_.t5&&se_.t5.rt)?'T5':idx>=5&&testVma(se_.t6&&se_.t6.rt)?'T6':'T2'):(idx>=6&&se_.s6&&c3dist(se_.s6.c3)?'S6':idx>=1&&se_.s2&&(testVma(se_.s2.ts)||c3dist(se_.s2.t3m))?'S2':'S1');
-  const replie=v&&!hide&&(d.vu||!HIDE_FIRST.includes(s.id));   /* v2.0 : une fois calculés et vérifiés, les objectifs se replient (chaque étape rappelle sa cible) */
+  const replie=v&&!OBJ_OUVERTS.includes(s.id);   /* les objectifs se replient (chaque étape rappelle sa cible), sauf en S3, T3, T4 */
   const r_=`<section class="card obj ${mod?'mod':''}"><h3>🎯 Mes objectifs du jour</h3>
    <div class="row wrap"><label>Ma VMA du jour (km/h) ${stp('vj',d,{step:0.5,min:6,max:24,start:vMes?R(vMes*2)/2:12,ph:vMes?fV(vMes):'',cls:mod?'modin':'',chk:x=>x!=null&&(x<7||x>22)?'VMA inhabituelle : vérifie.':''})}</label>
    <p class="small ${mod?'warn':'muted'}">${vMes?(mod?`⚠ VMA modifiée (mesurée : ${fV(vMes)} km/h). Le prof le verra.`:`${T?'VMA mesurée':'Vitesse sur 3’ mesurée'} en ${src} : ${fV(vMes)} km/h.`):'Pas de VMA mesurée : entre celle que le prof t’a donnée.'}</p></div>
-   ${!v?'':hide?`<p>📝 <b>Calcule d’abord tes objectifs</b> avec la 🧮 calculatrice (ou de tête : VMA × %), écris-les sur ta main ou dans ta tête, puis vérifie.</p>
-     <ul class="objl">${L.map(o=>`<li><span>${o[0]}</span><b>?</b></li>`).join('')}</ul><div class="row wrap"><button class="btn" data-act="calc">🧮 Calculer</button><button class="btn pri" data-set="vu" data-v="1">Vérifier mes calculs</button></div>`
-   :`<ul class="objl">${L.map(o=>`<li><span>${o[0]}</span><b>${o[1]}</b>${calcLink(o[2])}</li>`).join('')}</ul>`}</section>`;
+   ${!v?'':`<ul class="objl">${L.map(o=>`<li><span>${o[0]}</span><b>${o[1]}</b>${calcLink(o[2])}</li>`).join('')}</ul>`}</section>`;
   return replie?r_.replace('<section class="card obj','<details class="card obj').replace('<h3>🎯 Mes objectifs du jour</h3>','<summary class="objs"><b>🎯 Mes objectifs du jour</b> <span class="muted small">· touche pour les revoir</span></summary>').replace(/<\/section>$/,'</details>'):r_;
 }
 /* coach habituel : le coureur suivant du groupe (binôme : l'autre ; trinôme : A→B→C→A), s'il est là */
@@ -225,8 +225,8 @@ function sessView(){
   if(d.st==='bl')return head+`<section class="card"><h3>${esc(run.prenom)} ne court pas aujourd’hui</h3>${AVT('blesse','Tu ne cours pas, mais tu restes coach de ton binôme.')}<p class="muted">Blessé ou dispensé : la séance ne compte pas dans mes projets tenus.</p>
    <label>Ce qui m’empêche de courir ${txt('mot',d)}</label><p class="small"><b>Aujourd’hui, tu restes coach.</b> En fin de séance, ouvre la séance de ton binôme (son prénom en haut) et remplis la carte « Tu es le coach de… ».</p></section>`+qrBtn;
   const blocs=s.blocks.map(bk).filter(B=>phaseOf(B)===ph);
-  /* S2, S3, T3, T4 : on calcule ses objectifs avant de courir ; la carte reste EN HAUT, avant et après « Vérifier mes calculs » (elle descendait en bas, sous les blocs). */
-  const calcAvant=!M&&HIDE_FIRST.includes(s.id)&&vma;
+  /* S3, T3, T4 : la carte des objectifs reste ouverte EN HAUT de la séance. */
+  const calcAvant=!M&&OBJ_OUVERTS.includes(s.id)&&vma;
   if(ph==='fin')return head+phases+`<section class="card thin"><p class="small"><b>Après les étirements, 5 minutes :</b> chacun remplit son bilan, puis le binôme envoie la séance.</p></section>
   ${stepsBar(s,d)}${blocs.map(B=>stepWrap(withHelp(blockView(B,s,run,d,vma),B[0],B,s),B,s,d)).join('')}
   ${stepWrap(withHelp(bilanView(s,run,d,t,n,vma),'bilan',[],s),['bilan'],s,d)}`+qrBtn;
@@ -471,10 +471,19 @@ function blockView(b,s,run,d,vma){
      <p class="small"><b>*</b> Attention : ce test peut avoir tendance à surestimer très légèrement la VMA.</p>
 </section>`}
   if(ty==='ser'){const rows=d[a1]||[];
-    return `<section class="card"><h3>${esc(a2)} ${who('C')}</h3><p class="muted small">${isM(run)?`Toujours un pied au sol. Récupération : ${esc(a3[0][2]||'1’30')} de marche lente entre deux. Temps prévu calculé avec ta vitesse de marche.`:`En alternance dans le binôme : la course de l’un est la récupération de l’autre. Temps prévu calculé avec ${s.id[0]==='s'?'ta vitesse sur 3’ (ou ta VMA estimée, quand c’est indiqué)':'ta VMA'}.`}</p>
+    /* v6.1 : séries en alternance (ex. 12 × 125 m) : chaque fraction faite change de couleur, on voit ce qu'il reste,
+       et sous chaque fraction un bouton « Fait · au tour de … » passe la main au partenaire. */
+    const bin=curBin(),nR=bin.runners.length,ri=V.ri||0;let nx=-1;
+    for(let k=1;k<nR;k++){const j=(ri+k)%nR,pd=(bin.runners[j].seances||{})[s.id];if(!(pd&&pd.st==='abs')){nx=j;break}}   /* partenaire présent suivant */
+    const alt=nx>=0&&a3.some(r=>r[2]==='alternance'),ot=alt?bin.runners[nx]:null;
+    const fait=i=>!!(rows[i]&&(rows[i].ok||parseT(rows[i].tr)!=null)),nf=a3.filter((r,i)=>fait(i)).length,reste=a3.length-nf;
+    const prog=alt?`<div class="altprog"><div class="altpts">${a3.map((r,i)=>`<span class="${fait(i)?'on':''}" aria-hidden="true">${i+1}</span>`).join('')}</div>
+      <p class="${reste?'':'ok'}"><b>${nf} / ${a3.length}</b> faites · ${reste?`il te reste <b>${reste} × ${a3[0][0]} m</b>`:'série terminée ✓'}</p></div>`:'';
+    return `<section class="card"><h3>${esc(a2)} ${who('C')}</h3>${prog}<p class="muted small">${isM(run)?`Toujours un pied au sol. Récupération : ${esc(a3[0][2]||'1’30')} de marche lente entre deux. Temps prévu calculé avec ta vitesse de marche.`:`En alternance dans le binôme : la course de l’un est la récupération de l’autre. Temps prévu calculé avec ${s.id[0]==='s'?'ta vitesse sur 3’ (ou ta VMA estimée, quand c’est indiqué)':'ta VMA'}.`}</p>
      ${a3.map((r,i)=>{const pv=prevu(r[0],pctRow(r),vma);const t=parseT(rows[i]&&rows[i].tr);const ok=t!=null&&pv?Math.abs(t-pv)<=2:null;
-      return `<div class="srow s400"><b class="sl">${i+1}. ${r[0]} m ${okb(ok)}</b><div class="cible400"><span>À faire en</span><b>${pv?fT(pv):'?'}</b></div>
-       <label>Réalisé ${tstp(`${a1}.${i}.tr`,d,{min:10,max:300,start:pv?R(pv):60,chk:pv?near(pv,0.2):null,peu:1})}</label>${t!=null&&pv?`<span class="small ${ok?'ok':'ko'}">${t-pv>=0?'+':'−'}${R(Math.abs(t-pv))} s</span>`:''}</div>`}).join('')}</section>`}
+      return `<div class="srow s400${alt&&fait(i)?' fait':''}"><b class="sl">${i+1}. ${r[0]} m ${alt&&fait(i)?'<span class="tag okt">✓ faite</span>':''} ${okb(ok)}</b><div class="cible400"><span>À faire en</span><b>${pv?fT(pv):'?'}</b></div>
+       <label>Réalisé ${tstp(`${a1}.${i}.tr`,d,{min:10,max:300,start:pv?R(pv):60,chk:pv?near(pv,0.2):null,peu:1})}</label>${t!=null&&pv?`<span class="small ${ok?'ok':'ko'}">${t-pv>=0?'+':'−'}${R(Math.abs(t-pv))} s</span>`:''}
+       ${alt?(fait(i)&&!(rows[i]&&parseT(rows[i].tr)!=null)?`<button type="button" class="lnk small altann" data-tfoff="${a1}.${i}">annuler « faite »</button>`:'')+(fait(i)?'':`<button type="button" class="alt-sw t${COUL[nx]||'a'}" data-tourn="${nx}" data-tf="${a1}.${i}">✓ Faite · au tour de ${esc(ot.prenom)} ▶</button>`):''}</div>`}).join('')}</section>`}
   if(ty==='ra2'){const c=vma?R(dist(a2,vma*a1/100)/10)*10:null;
     return `<section class="card"><h3>Récupération active ${fT(a2)} à ${a1} % ${who('C')}</h3><div class="outs">${out('Distance à réaliser',c?c+' m · '+piste(c):'?','hi')}</div>${calcLink({pct:a1,mode:'dur',sec:a2})}
      <label>Distance réalisée (m) ${stp('ra2',d,{step:10,min:0,max:1200,start:c||400,chk:x=>x!=null&&c&&x>c*1.3?'bien plus vite que prévu : c’est une récupération.':''})}</label></section>`}

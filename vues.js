@@ -476,14 +476,15 @@ function blockView(b,s,run,d,vma){
     const bin=curBin(),nR=bin.runners.length,ri=V.ri||0;let nx=-1;
     for(let k=1;k<nR;k++){const j=(ri+k)%nR,pd=(bin.runners[j].seances||{})[s.id];if(!(pd&&pd.st==='abs')){nx=j;break}}   /* partenaire présent suivant */
     const alt=nx>=0&&a3.some(r=>r[2]==='alternance'),ot=alt?bin.runners[nx]:null;
-    const fait=i=>!!(rows[i]&&(rows[i].ok||parseT(rows[i].tr)!=null)),nf=a3.filter((r,i)=>fait(i)).length,reste=a3.length-nf;
+    const fait=i=>!!(rows[i]&&rows[i].ok),   /* faite = seulement après « au tour de … » (saisir le temps ne suffit pas) */
+    nf=a3.filter((r,i)=>fait(i)).length,reste=a3.length-nf;
     const prog=alt?`<div class="altprog"><div class="altpts">${a3.map((r,i)=>`<span class="${fait(i)?'on':''}" aria-hidden="true">${i+1}</span>`).join('')}</div>
       <p class="${reste?'':'ok'}"><b>${nf} / ${a3.length}</b> faites · ${reste?`il te reste <b>${reste} × ${a3[0][0]} m</b>`:'série terminée ✓'}</p></div>`:'';
     return `<section class="card"><h3>${esc(a2)} ${who('C')}</h3>${prog}<p class="muted small">${isM(run)?`Toujours un pied au sol. Récupération : ${esc(a3[0][2]||'1’30')} de marche lente entre deux. Temps prévu calculé avec ta vitesse de marche.`:`En alternance dans le binôme : la course de l’un est la récupération de l’autre. Temps prévu calculé avec ${s.id[0]==='s'?'ta vitesse sur 3’ (ou ta VMA estimée, quand c’est indiqué)':'ta VMA'}.`}</p>
      ${a3.map((r,i)=>{const pv=prevu(r[0],pctRow(r),vma);const t=parseT(rows[i]&&rows[i].tr);const ok=t!=null&&pv?Math.abs(t-pv)<=2:null;
       return `<div class="srow s400${alt&&fait(i)?' fait':''}"><b class="sl">${i+1}. ${r[0]} m ${alt&&fait(i)?'<span class="tag okt">✓ faite</span>':''} ${okb(ok)}</b><div class="cible400"><span>À faire en</span><b>${pv?fT(pv):'?'}</b></div>
        <label>Réalisé ${tstp(`${a1}.${i}.tr`,d,{min:10,max:300,start:pv?R(pv):60,chk:pv?near(pv,0.2):null,peu:1})}</label>${t!=null&&pv?`<span class="small ${ok?'ok':'ko'}">${t-pv>=0?'+':'−'}${R(Math.abs(t-pv))} s</span>`:''}
-       ${alt?(fait(i)&&!(rows[i]&&parseT(rows[i].tr)!=null)?`<button type="button" class="lnk small altann" data-tfoff="${a1}.${i}">annuler « faite »</button>`:'')+(fait(i)?'':`<button type="button" class="alt-sw t${COUL[nx]||'a'}" data-tourn="${nx}" data-tf="${a1}.${i}">✓ Faite · au tour de ${esc(ot.prenom)} ▶</button>`):''}</div>`}).join('')}</section>`}
+       ${alt?(fait(i)?`<button type="button" class="lnk small altann" data-tfoff="${a1}.${i}">annuler « faite »</button>`:'')+(fait(i)?'':`<button type="button" class="alt-sw t${COUL[nx]||'a'}" data-tourn="${nx}" data-tf="${a1}.${i}">✓ Faite · au tour de ${esc(ot.prenom)} ▶</button>`):''}</div>`}).join('')}</section>`}
   if(ty==='ra2'){const c=vma?R(dist(a2,vma*a1/100)/10)*10:null;
     return `<section class="card"><h3>Récupération active ${fT(a2)} à ${a1} % ${who('C')}</h3><div class="outs">${out('Distance à réaliser',c?c+' m · '+piste(c):'?','hi')}</div>${calcLink({pct:a1,mode:'dur',sec:a2})}
      <label>Distance réalisée (m) ${stp('ra2',d,{step:10,min:0,max:1200,start:c||400,chk:x=>x!=null&&c&&x>c*1.3?'bien plus vite que prévu : c’est une récupération.':''})}</label></section>`}

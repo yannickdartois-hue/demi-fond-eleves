@@ -14,7 +14,7 @@ const CLE='dfe-v1';
    Il n'apparaît jamais à l'écran. Vide = envoi en ligne pas encore activé (le QR code reste possible). */
 const DEPOT_DEFAUT='';
 const lienEnvoi=()=>(G&&G.cfg&&G.cfg.lien)||DEPOT_DEFAUT;
-const QR_MAX=1400;                                   /* au-delà : QR en plusieurs morceaux qui défilent */
+const QR_MAX=750;                                    /* au-delà : QR en plusieurs morceaux qui défilent (v6.4 : 1400 était trop dense pour certaines tablettes) */
 
 const $=s=>document.querySelector(s);
 const uid=()=>Math.random().toString(36).slice(2,9);
@@ -177,7 +177,8 @@ const qrDe=o=>({a:'DFE',v:1,t:'S',y:o.cycle,c:o.classe,e:o.eleve,x:o.sexe,s:o.se
 function marquerEnvoye(sids,mode){const t=Date.now();sids.forEach(sid=>{G.sent[sid]=t;G.envoi[sid]=Object.assign(G.envoi[sid]||{},{[mode]:t})});save()}
 /* QR en plusieurs morceaux (texte trop long pour un seul QR) */
 function morceaux(txt){if(txt.length<=QR_MAX)return [txt];const tag=Math.random().toString(36).slice(2,6),n=Math.ceil(txt.length/QR_MAX),out=[];
-  for(let i=0;i<n;i++)out.push('DFEP|'+tag+'|'+(i+1)+'/'+n+'|'+txt.slice(i*QR_MAX,(i+1)*QR_MAX));return out}
+  const t=Math.ceil(txt.length/n);   /* morceaux de taille égale */
+  for(let i=0;i<n;i++)out.push('DFEP|'+tag+'|'+(i+1)+'/'+n+'|'+txt.slice(i*t,(i+1)*t));return out}
 let RQ={h:null},QRS=null;
 function svgQR(t){try{return DFQR.svgQR(t)}catch(e){return '<p class="warn">Trop de données pour un QR : utilise l’envoi en ligne.</p>'}}
 function qrAnime(parts){if(RQ.h)clearInterval(RQ.h);RQ.h=null;let i=0;const z=$('#rqr');if(!z)return;z.innerHTML=svgQR(parts[0]);const n=$('#rqn');if(n)n.textContent=parts.length>1?'1 / '+parts.length+' · laisse le prof viser jusqu’au bip':'';

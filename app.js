@@ -8,7 +8,7 @@
 const AVT=(n,b,c)=>window.EPSAvatar?EPSAvatar(n,b,c):'',AVM=n=>window.EPSAvatar?EPSAvatar.mini(n):'';
 
 'use strict';
-const APP_VERSION='v6.8 · 26/11/2026';
+const APP_VERSION='v6.9 · 26/11/2026';
 const CLE='dfe-v1';
 /* Envoi en ligne : le lien de dépôt (Nuage, « Demande de fichier ») arrive avec le QR de la classe.
    Il n'apparaît jamais à l'écran. Vide = envoi en ligne pas encore activé (le QR code reste possible). */
@@ -645,9 +645,15 @@ function xcAff(){const v=xcVal(),m=Math.floor(v/60),sec=v-m*60;const t=m+':'+(se
   document.querySelectorAll('[data-xc="go"]').forEach(b=>{if(b.dataset.e===e)return;b.dataset.e=e;
     if(b.closest('.flotte')){b.innerHTML=XC.run?XC_ICO.pause:XC_ICO.play;b.title=lb;b.setAttribute('aria-label',lb+' le chronomètre')}else b.textContent=lb});
   document.querySelectorAll('[data-xc="r"]').forEach(b=>{b.disabled=e==='zero'})}
-function xcAct(a){if(a==='go'){if(XC.run){XC.acc=xcVal();XC.run=false;clearInterval(XC.h)}else{XC.t0=Date.now();XC.run=true;clearInterval(XC.h);XC.h=setInterval(xcAff,100)}}
-  if(a==='r'){XC.run=false;XC.acc=0;clearInterval(XC.h)}
+function xcAct(a){if(a==='go'){if(XC.run){XC.acc=xcVal();XC.run=false;clearInterval(XC.h)}else{XC.t0=Date.now();XC.run=true;clearInterval(XC.h);XC.h=setInterval(xcAff,100)}xcGarder()}
+  if(a==='r'){XC.run=false;XC.acc=0;clearInterval(XC.h);xcGarder()}
   if(a==='plein')return xcPlein(true);if(a==='min')return xcPlein(false);xcAff()}
+/* v6.9 : le chrono survit à un rechargement de la page ou à la fermeture de l'onglet (état gardé sur l'appareil,
+   calé sur l'heure réelle ; ignoré au-delà de 4 h). Clé préfixée : toutes les applis partagent le même stockage. */
+const XC_CLE='demi-fond-eleves:chrono-flottant';
+function xcGarder(){try{if(typeof DEMO!=='undefined'&&DEMO)return;/* démo : rien n'est enregistré */if(XC.run||XC.acc)localStorage.setItem(XC_CLE,JSON.stringify({acc:XC.acc,run:XC.run,t0:XC.t0,ts:Date.now()}));else localStorage.removeItem(XC_CLE)}catch(e){}}
+(function xcReprendre(){try{const o=JSON.parse(localStorage.getItem(XC_CLE)||'null');if(!o||Date.now()-o.ts>4*3600e3||(o.run&&Date.now()-o.t0>4*3600e3)){localStorage.removeItem(XC_CLE);return}
+  XC.acc=+o.acc||0;XC.run=!!o.run;XC.t0=+o.t0||0;if(XC.run){clearInterval(XC.h);XC.h=setInterval(xcAff,100)}}catch(e){}})();
 /* v6.8 : plein écran — c'est LE MÊME chrono (même élément, même état XC), seulement affiché en grand.
    Plein écran du navigateur si possible (Android, PC), sinon simple affichage en grand (iPhone) ;
    l'écran ne se met pas en veille ; le bouton retour du téléphone ou Échap le réduisent. */

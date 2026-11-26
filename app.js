@@ -8,7 +8,7 @@
 const AVT=(n,b,c)=>window.EPSAvatar?EPSAvatar(n,b,c):'',AVM=n=>window.EPSAvatar?EPSAvatar.mini(n):'';
 
 'use strict';
-const APP_VERSION='v6.7 · 26/11/2026';
+const APP_VERSION='v6.8 · 26/11/2026';
 const CLE='dfe-v1';
 /* Envoi en ligne : le lien de dépôt (Nuage, « Demande de fichier ») arrive avec le QR de la classe.
    Il n'apparaît jamais à l'écran. Vide = envoi en ligne pas encore activé (le QR code reste possible). */
@@ -640,12 +640,30 @@ function xcAff(){const v=xcVal(),m=Math.floor(v/60),sec=v-m*60;const t=m+':'+(se
   /* v6.7 : état visible (en marche / en pause / à zéro) ; le bouton n'est réécrit que si l'état change,
      jamais toutes les 100 ms (sinon un appui pendant la réécriture pouvait être perdu) */
   const e=XC.run?'marche':(XC.acc?'pause':'zero'),lb=XC.run?'Pause':(XC.acc?'Reprendre':'Démarrer');
-  document.querySelectorAll('.xchr').forEach(c=>{c.classList.toggle('marche',e==='marche');c.classList.toggle('pause',e==='pause')});
+  document.querySelectorAll('.xchr').forEach(c=>{c.classList.toggle('marche',e==='marche');c.classList.toggle('pause',e==='pause');if(c.classList.contains('flotte'))c.classList.toggle('plein',!!XC.plein)});
+  document.body.classList.toggle('xc-plein',!!XC.plein&&!!document.querySelector('.xchr.flotte'));
   document.querySelectorAll('[data-xc="go"]').forEach(b=>{if(b.dataset.e===e)return;b.dataset.e=e;
     if(b.closest('.flotte')){b.innerHTML=XC.run?XC_ICO.pause:XC_ICO.play;b.title=lb;b.setAttribute('aria-label',lb+' le chronomètre')}else b.textContent=lb});
   document.querySelectorAll('[data-xc="r"]').forEach(b=>{b.disabled=e==='zero'})}
 function xcAct(a){if(a==='go'){if(XC.run){XC.acc=xcVal();XC.run=false;clearInterval(XC.h)}else{XC.t0=Date.now();XC.run=true;clearInterval(XC.h);XC.h=setInterval(xcAff,100)}}
-  if(a==='r'){XC.run=false;XC.acc=0;clearInterval(XC.h)}xcAff()}
+  if(a==='r'){XC.run=false;XC.acc=0;clearInterval(XC.h)}
+  if(a==='plein')return xcPlein(true);if(a==='min')return xcPlein(false);xcAff()}
+/* v6.8 : plein écran — c'est LE MÊME chrono (même élément, même état XC), seulement affiché en grand.
+   Plein écran du navigateur si possible (Android, PC), sinon simple affichage en grand (iPhone) ;
+   l'écran ne se met pas en veille ; le bouton retour du téléphone ou Échap le réduisent. */
+function xcVeille(on){try{if(on){if(navigator.wakeLock&&document.visibilityState==='visible')navigator.wakeLock.request('screen').then(l=>{XC.lock=l}).catch(()=>{})}
+  else if(XC.lock){XC.lock.release().catch(()=>{});XC.lock=null}}catch(e){}}
+function xcPlein(on){on=!!on;if(!!XC.plein===on)return xcAff();XC.plein=on;
+  if(on){try{history.pushState({xcPlein:1},'')}catch(e){}
+    try{const d=document.documentElement;if(d.requestFullscreen&&!document.fullscreenElement)d.requestFullscreen({navigationUI:'hide'}).catch(()=>{})}catch(e){}
+    xcVeille(true)}
+  else{XC.fs=false;try{if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(()=>{})}catch(e){}
+    xcVeille(false);try{if(history.state&&history.state.xcPlein)history.back()}catch(e){}}
+  xcAff()}
+window.addEventListener('popstate',()=>{if(XC.plein)xcPlein(false)});
+document.addEventListener('fullscreenchange',()=>{if(document.fullscreenElement){XC.fs=true;return}if(XC.plein&&XC.fs)xcPlein(false);XC.fs=false});
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&XC.plein)xcPlein(false)});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&XC.plein)xcVeille(true)});
 /* ---------- récupération : bandeau vert en haut, jamais une fenêtre ; le pouls passe d'abord ---------- */
 let REC=null;
 function recReste(){return REC?Math.max(0,REC.fin-Date.now())/1000:0}
@@ -680,7 +698,7 @@ function recAff(){const main=document.getElementById('main');if(!REC||!main)retu
   const html=`<div class="recband ${r<=0?'fini':''}"><span>${r<=0?'Récupération finie : on repart !':'Récupération '+Math.round(REC.tot/60*2)/2+'’'}${r>0&&REC.cons?'<small style="display:block;font-weight:600">'+REC.cons+'</small>':''}</span><b>${t}</b><span class="rb"><button type="button" class="chip sm" data-rc="m">−30 s</button><button type="button" class="chip sm" data-rc="p">+30 s</button><button type="button" class="chip sm" data-rc="x" aria-label="Fermer">✕</button></span></div>
    ${REC.pouls?`<div class="poulscard"><b>❤ Prends ton pouls maintenant !</b><span>Tout de suite après l’effort, avant qu’il redescende.</span><button type="button" class="poulsgo" data-rc="pl">❤ Touche ici pour compter 15 s</button><button type="button" class="lnk small" data-rc="np">Pas cette fois</button></div>`:''}`;
   if(b.dataset.h!==html){b.innerHTML=html;b.dataset.h=html}}
-new MutationObserver(()=>{if(REC&&V.tab==='seance'&&!document.getElementById('recband'))recAff();if(document.querySelector('.xchr'))xcAff()}).observe(document.getElementById('main')||document.body,{childList:true});
+new MutationObserver(()=>{if(REC&&V.tab==='seance'&&!document.getElementById('recband'))recAff();if(XC.plein&&!document.querySelector('.xchr.flotte'))xcPlein(false);else if(document.querySelector('.xchr'))xcAff()}).observe(document.getElementById('main')||document.body,{childList:true});
 /* pouls libre : bouton ❤ et carte de récupération ; la mesure est gardée dans la séance du coureur affiché */
 function poulsLibre(){if(!window.EPSPouls||!G||!V.sid)return toast('Prise de pouls indisponible.');const ri=V.ri||0,run=G.runners[ri];
   EPSPouls.ouvrir({titre:'Pouls de '+run.prenom,note:'Mesure tout de suite après l’effort : le pouls baisse vite.',recup:true,

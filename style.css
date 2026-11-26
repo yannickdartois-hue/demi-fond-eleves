@@ -586,3 +586,35 @@ body.eps-demo-actif:has(.xchr.flotte) #toast{bottom:calc(var(--eps-demo-bas,10px
   html body .xchr.flotte .chip{min-height:48px;min-width:60px}
   html body .xchr.flotte .chip svg{width:26px;height:26px}
 }
+
+/* v6.8 · Bouton « agrandir » : toucher le temps (icône ⤢) ouvre le même chrono en plein écran */
+html body .xchr.flotte .xc-plein{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:4px;margin:0;padding:0;border:0;background:none;color:inherit;font:inherit;cursor:pointer;border-radius:10px}
+html body .xchr.flotte .xc-plein>*{pointer-events:none}
+html body .xchr.flotte .xc-plein .xchr-t{padding:2px 0 0}
+html body .xchr.flotte .xc-agr{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.14);color:#fff;flex:none}
+html body .xchr.flotte .xc-agr svg{width:20px;height:20px}
+html body .xchr.flotte .xc-plein:active .xc-agr{background:rgba(255,255,255,.3)}
+html body .xchr.flotte .xc-min{display:none}
+@media (min-width:561px){html body .xchr.flotte .xc-plein{grid-column:auto;gap:8px}html body .xchr.flotte .xc-agr{width:38px;height:38px}html body .xchr.flotte .xc-agr svg{width:24px;height:24px}}
+
+/* plein écran */
+body.xc-plein{overflow:hidden}
+body.xc-plein .pouls-fab,body.xc-plein .eps-demo{display:none!important}
+body.xc-plein #modal{z-index:46}body.xc-plein #toast{z-index:47;bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+html body .xchr.flotte.plein{position:fixed;inset:0;left:0;bottom:0;z-index:45;max-width:none;width:auto;margin:0;border-radius:0;box-shadow:none;background:#0b0e13;
+  display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr auto;gap:14px;
+  padding:calc(10px + env(safe-area-inset-top,0px)) calc(14px + env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) calc(14px + env(safe-area-inset-left,0px))}
+html body .xchr.flotte.plein .xc-min{grid-column:1/-1;justify-self:end;display:flex;align-items:center;gap:8px;min-height:48px;padding:0 16px;border:0;border-radius:999px;background:rgba(255,255,255,.14);color:#fff;font:700 17px/1 var(--font-body,system-ui);cursor:pointer}
+html body .xchr.flotte.plein .xc-min svg{width:24px;height:24px;pointer-events:none}
+html body .xchr.flotte.plein .xc-min span{pointer-events:none}
+html body .xchr.flotte.plein .xc-plein{grid-column:1/-1;pointer-events:none;min-height:0}
+html body .xchr.flotte.plein .xc-agr{display:none}
+/* Archivo condensé (police variable) : chiffres plus étroits, donc beaucoup plus hauts sur un téléphone en portrait */
+html body .xchr.flotte.plein .xchr-t{font-size:min(33vw,36vh);font-stretch:66%;line-height:1;letter-spacing:-.01em}
+html body .xchr.flotte.plein .chip{min-height:min(110px,18vh);border-radius:20px}
+html body .xchr.flotte.plein .chip svg{width:min(56px,9vh);height:min(56px,9vh)}
+@media (orientation:landscape){
+  html body .xchr.flotte.plein{gap:10px}
+  html body .xchr.flotte.plein .xchr-t{font-size:min(28vw,50vh)}
+  html body .xchr.flotte.plein .chip{min-height:min(96px,22vh)}
+}

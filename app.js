@@ -8,7 +8,7 @@
 const AVT=(n,b,c)=>window.EPSAvatar?EPSAvatar(n,b,c):'',AVM=n=>window.EPSAvatar?EPSAvatar.mini(n):'';
 
 'use strict';
-const APP_VERSION='v6.9 · 26/11/2026';
+const APP_VERSION='v6.10 · 26/11/2026';
 const CLE='dfe-v1';
 /* Envoi en ligne : le lien de dépôt (Nuage, « Demande de fichier ») arrive avec le QR de la classe.
    Il n'apparaît jamais à l'écran. Vide = envoi en ligne pas encore activé (le QR code reste possible). */

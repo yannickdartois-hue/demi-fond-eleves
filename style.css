@@ -563,10 +563,6 @@ html body .xchr.flotte .chip:active{transform:scale(.95)}
 .xchr-place{height:124px}
 /* les messages (toast) s'affichent au-dessus du chrono */
 body:has(.xchr.flotte) #toast{bottom:calc(206px + env(safe-area-inset-bottom,0px))}
-/* mode démo : la barre violette est en bas à gauche, le chrono passe juste au-dessus */
-html body.eps-demo-actif .xchr.flotte{bottom:calc(var(--eps-demo-bas,10px) + 66px + env(safe-area-inset-bottom,0px))}
-body.eps-demo-actif .xchr-place{height:190px}
-body.eps-demo-actif:has(.xchr.flotte) #toast{bottom:calc(var(--eps-demo-bas,10px) + 192px + env(safe-area-inset-bottom,0px))}
 @media (min-width:561px){
   html body .xchr.flotte{grid-template-columns:auto auto auto;align-items:center;gap:10px;left:14px;bottom:calc(86px + env(safe-area-inset-bottom,0px));padding:10px 12px;max-width:none}
   html body .xchr.flotte .xchr-t{grid-column:auto;font-size:52px;min-width:4.6ch;padding:0 6px}
@@ -574,10 +570,6 @@ body.eps-demo-actif:has(.xchr.flotte) #toast{bottom:calc(var(--eps-demo-bas,10px
   html body .xchr.flotte .chip svg{width:30px;height:30px}
   .xchr-place{height:84px}
   body:has(.xchr.flotte) #toast{bottom:calc(176px + env(safe-area-inset-bottom,0px))}
-  /* la barre DÉMO tient sur 2 lignes sur grand écran */
-  html body.eps-demo-actif .xchr.flotte{bottom:calc(var(--eps-demo-bas,10px) + 124px + env(safe-area-inset-bottom,0px))}
-  body.eps-demo-actif .xchr-place{height:200px}
-  body.eps-demo-actif:has(.xchr.flotte) #toast{bottom:calc(var(--eps-demo-bas,10px) + 216px + env(safe-area-inset-bottom,0px))}
 }
 /* téléphone en paysage (peu de hauteur) : chrono sur une ligne, plus bas, pour garder la séance visible */
 @media (min-width:561px) and (max-height:520px){

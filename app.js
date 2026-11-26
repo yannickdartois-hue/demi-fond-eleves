@@ -237,11 +237,11 @@ function horsListe(){const b=G;if(DEMO||!b||!b.cfg||!(b.cfg.eleves||[]).length)r
   ${H.map(([r,i])=>{const p=norm(r.prenom),bons=L.filter(n=>!pris.has(norm(n))&&norm(prenomDe(n))===p),aut=L.filter(n=>!pris.has(norm(n))&&!bons.includes(n)).sort((a,b)=>a.localeCompare(b,'fr'));
     return `<div class="row wrap" style="align-items:center;margin-top:8px"><b style="min-width:7em">${esc(r.full)}</b><select class="in sel" id="hors${i}" style="flex:1;min-width:0">${bons.map(n=>`<option>${esc(n)}</option>`).join('')}${bons.length?'<option disabled>──────</option>':'<option value="">— Choisir —</option>'}${aut.map(n=>`<option>${esc(n)}</option>`).join('')}</select><button class="btn sm pri" data-act="horsok" data-v="${i}">Corriger</button></div>`}).join('')}</section>`}
 /* lecture caméra, avec les QR en plusieurs morceaux */
-function scannerQR(onObj,titre,aide){let P={tag:null,n:0,parts:{}},fin=null;
+function scannerQR(onObj,titre,aide,errDec){let P={tag:null,n:0,parts:{}},fin=null;
   fin=DFQR.scanner(async t=>{t=String(t).trim();
     if(t.startsWith('DFEP|')){const m=/^DFEP\|(\w+)\|(\d+)\/(\d+)\|(.*)$/s.exec(t);if(!m)throw new Error('Morceau illisible.');if(P.tag!==m[1])P={tag:m[1],n:+m[3],parts:{}};P.parts[+m[2]]=m[4];
       const got=Object.keys(P.parts).length;if(got<P.n)return got+' / '+P.n+' morceaux…';let s='';for(let i=1;i<=P.n;i++)s+=P.parts[i];t=s}
-    const msg=onObj(await DFQR.decoder(t));beep();setTimeout(()=>{fin&&fin()},700);return msg},{continu:true,titre,aide});
+    let o;try{o=await DFQR.decoder(t)}catch(e){throw new Error(errDec||e.message)}const msg=await onObj(o);beep();setTimeout(()=>{fin&&fin()},700);return msg},{continu:true,titre,aide});
 }
 function recevoirClasse(o){
   if(o.t!=='C')throw new Error('Ce n’est pas le QR de la classe.');
@@ -609,10 +609,10 @@ return `<section class="card"><h3>Conseils du coureur</h3>${D.map(([t,x])=>`<det
 /* chrono qui reprend après rechargement : on rouvre son écran */
 function chOuvrir(){V.tab='chrono'}
 
-/* Code du cours (eps-code.js, commun) : la saisie ne s’ouvre qu’en cours, avec le code à 4 chiffres du professeur (2 h). */
+/* Séance du jour (eps-code.js v2, commun) : la saisie ne s’ouvre qu’en cours, en scannant le QR du jour du professeur (2 h). Aucun code à taper. */
 if(window.EPSCode)EPSCode.eleve({app:'dfe',classe:()=>G&&G.classe||'',seance:()=>G?String(V.sid||''):'',seances:()=>G?sessOf(G.cy).map(s=>s.id):[],nom:s=>(SBY[s]||{n:s}).n,
   ouvrir:s=>{if(!G)return;V.sid=s;V.tab='seance';V.ri=0;V.cur=0;V.ph='piste';V.presOpen=false;G.jours=G.jours||{};G.jours[today()]=s;save();render()},
-  cleObligatoire:true,scanner:()=>scannerQR(recevoirClasse,'QR de la classe','Scanne le QR affiché par le professeur : la séance du jour s’ouvre.'),
+  cleObligatoire:true,qrApp:'DFE',scanner:v=>scannerQR(async o=>{await v(o);return recevoirClasse(o)},'QR du jour','Scanne le QR affiché par le professeur : la séance s’ouvre.','Ce QR n’est pas un QR de cette appli. Demande le QR du jour à ton professeur.'),
   actif:()=>!!G&&['seance','moi','chrono'].includes(V.tab),libreSel:'[data-tab],[data-ph],[data-ri],[data-sess],[data-cur],[data-calc]',libre:['calc','closem','qrnav'],demo:()=>DEMO});
 
 /* ---------- minuteur d'échauffement (réglable, bip à la fin) ---------- */

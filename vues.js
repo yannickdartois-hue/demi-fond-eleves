@@ -15,7 +15,7 @@ function getPath(o,path){return path.split('.').reduce((x,k)=>x==null?undefined:
 const hasData=d=>!!d&&Object.keys(d).some(k=>k!=='_v'&&k!=='v5');
 function saveS(){const b=curBin();if(b&&V.sid){b.mod=b.mod||{};b.mod[V.sid]=Date.now();const r=b.runners[V.ri||0];if(r&&r.imp)delete r.imp[V.sid];b.dates=b.dates||{};if(!b.dates[V.sid])b.dates[V.sid]=today()}save()}
 /* VMA effective d'une séance (VMA du jour modifiée, sinon mesurée) et projets tenus calculés avec elle */
-function effV(run,sid){const d=run.seances&&run.seances[sid];return (d&&num(d.vj))||vmaOf(run,sid)}
+function effV(run,sid){const d=run.seances&&run.seances[sid];return vjOf(d)||vmaOf(run,sid)}
 function ctx(run,sid,d){if(isM(run))return Object.assign({},d,{_v:vmmOf(run,sid)||num(d&&d._v),_mar:1});return Object.assign({},d,{_v:effV(run,sid)||num(d&&d._v),_ref:lastReal(run,sid)})}
 function tenR(run,sid){const d=run.seances&&run.seances[sid];if(!d)return [0,0];return tenus(sid,ctx(run,sid,d))}
 /* v4.2 : le QR de la classe dit quelles séances le professeur a reçues → « ✓ reçue par le professeur » */
@@ -158,12 +158,12 @@ const OBJ_INTRO={s2:'Aujourd’hui tu <b>mesures ta VMA</b> au test 36"/24" : la
  t2:'Aujourd’hui tu <b>mesures ta VMA</b> au test 36"/24" : la moyenne des plots atteints = ta VMA. Elle servira à calculer tous tes objectifs de T3 à T9.'};
 function objCard(s,run,d,vMes,v){
   if(OBJ_INTRO[s.id])return `<section class="card obj"><h3>🎯 Mes objectifs du jour</h3><p>${OBJ_INTRO[s.id]}</p></section>`;
-  const mod=num(d.vj)!=null&&vMes!=null&&Math.abs(num(d.vj)-vMes)>0.05;const L=objectives(s,run,v);
+  const mod=vjOf(d)!=null&&vMes!=null&&Math.abs(vjOf(d)-vMes)>0.05;const L=objectives(s,run,v);
   const T=s.id[0]==='t';const idx=sessOf(T?'T':'S').findIndex(x=>x.id===s.id);
   const se_=run.seances||{};const src=T?(idx>=4&&testVma(se_.t5&&se_.t5.rt)?'T5':idx>=5&&testVma(se_.t6&&se_.t6.rt)?'T6':'T2'):(idx>=6&&se_.s6&&c3dist(se_.s6.c3)?'S6':idx>=1&&se_.s2&&(testVma(se_.s2.ts)||c3dist(se_.s2.t3m))?'S2':'S1');
   const replie=v&&!OBJ_OUVERTS.includes(s.id);   /* les objectifs se replient (chaque étape rappelle sa cible), sauf en S3, T3, T4 */
   const r_=`<section class="card obj ${mod?'mod':''}"><h3>🎯 Mes objectifs du jour</h3>
-   <div class="row wrap"><label>Ma VMA du jour (km/h) ${stp('vj',d,{step:0.5,min:6,max:24,start:vMes?R(vMes*2)/2:12,ph:vMes?fV(vMes):'',cls:mod?'modin':'',chk:x=>x!=null&&(x<7||x>22)?'VMA inhabituelle : vérifie.':''})}</label>
+   <div class="row wrap"><label>Ma VMA du jour (km/h) ${stp('vj',d,{step:VJ_PAS,min:VJ_MIN,max:VJ_MAX,start:vMes?R(vMes*2)/2:12,ph:vMes?fV(vMes):'',cls:mod?'modin':'',chk:x=>x!=null&&(x<7||x>22)?'VMA inhabituelle : vérifie.':''})}</label>
    <p class="small ${mod?'warn':'muted'}">${vMes?(mod?`⚠ VMA modifiée (mesurée : ${fV(vMes)} km/h). Le prof le verra.`:`${T?'VMA mesurée':'Vitesse sur 3’ mesurée'} en ${src} : ${fV(vMes)} km/h.`):'Pas de VMA mesurée : entre celle que le prof t’a donnée.'}</p></div>
    ${!v?'':`<ul class="objl">${L.map(o=>`<li><span>${o[0]}</span><b>${o[1]}</b>${calcLink(o[2])}</li>`).join('')}</ul>`}</section>`;
   return replie?r_.replace('<section class="card obj','<details class="card obj').replace('<h3>🎯 Mes objectifs du jour</h3>','<summary class="objs"><b>🎯 Mes objectifs du jour</b> <span class="muted small">· touche pour les revoir</span></summary>').replace(/<\/section>$/,'</details>'):r_;
@@ -207,13 +207,13 @@ function decorate(html,B,s,d,b,ri,ens){
   const k=html.lastIndexOf('</section>');
   return html.slice(0,k)+`<button type="button" class="np lnkbtn ${np?'on':''}" data-np="${esc(npKey(B))}">${np?'↩ Finalement réalisé':'⏭ Passer / non réalisé'}</button>`+html.slice(k)}
 function ensembleView(B,s,b){
-  const parts=b.runners.map((r,i)=>{const rs=sessFor(r,s.id),M=isM(r),d=sd(r,rs.id),vM=M?vmmOf(r,rs.id):vmaOf(r,rs.id),v=M?vM:(num(d.vj)||vM);
+  const parts=b.runners.map((r,i)=>{const rs=sessFor(r,s.id),M=isM(r),d=sd(r,rs.id),vM=M?vmmOf(r,rs.id):vmaOf(r,rs.id),v=M?vM:(vjOf(d)||vM);
     let h=withHelp(blockView(B,rs,r,d,v),B[0],B,rs).replace(/data-(p|stp|set|tog)="/g,`data-rn="${i}" data-$1="`);return {r,i,h}});
   const first=parts[0].h,h3=(first.match(/<h3>[\s\S]*?<\/h3>/)||[''])[0];
   const inner=x=>{const a=x.indexOf('</h3>');const b2=x.lastIndexOf('</section>');return x.slice(a+5,b2)};
   return `<section class="card">${h3}<div class="ens">${parts.map(({r,i,h})=>`<div class="ens-c c${COUL[i]||'a'}"><b class="ens-n">${esc(r.prenom)}</b>${inner(h)}</div>`).join('')}</div></section>`}
 function sessView(){
-  const b=curBin(),ri=V.ri||0,run=b.runners[ri],s=sessFor(run,V.sid),M=isM(run),d=sd(run,s.id),vMes=M?vmmOf(run,s.id):vmaOf(run,s.id),vma=M?vMes:(num(d.vj)||vMes);
+  const b=curBin(),ri=V.ri||0,run=b.runners[ri],s=sessFor(run,V.sid),M=isM(run),d=sd(run,s.id),vMes=M?vmmOf(run,s.id):vmaOf(run,s.id),vma=M?vMes:(vjOf(d)||vMes);
   const [t,n]=tenus(s.id,Object.assign(ctx(run,s.id,d),{_v:vma},M?{_mar:1}:{}));const co=coachOf(b,ri,s.id);
   /* v3.0 : en-tête compact ; « Je réussis si » replié (toucher pour le lire) */
   const head=`<section class="lanehead sess compact ${s.id[0]==='t'?'t':'s'}"><span class="ln">${s.n}</span><div><b>${esc(s.t)}</b><details class="goal"><summary>🎯 Je réussis si…</summary><p>${esc(s.goal)}</p></details></div></section>${presView(b,s.id)}

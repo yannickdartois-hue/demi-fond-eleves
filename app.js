@@ -8,7 +8,7 @@
 const AVT=(n,b,c)=>window.EPSAvatar?EPSAvatar(n,b,c):'',AVM=n=>window.EPSAvatar?EPSAvatar.mini(n):'';
 
 'use strict';
-const APP_VERSION='v5.3 · 20/11/2026';
+const APP_VERSION='v6.6 · 26/11/2026';
 const CLE='dfe-v1';
 /* Envoi en ligne : le lien de dépôt (Nuage, « Demande de fichier ») arrive avec le QR de la classe.
    Il n'apparaît jamais à l'écran. Vide = envoi en ligne pas encore activé (le QR code reste possible). */
@@ -427,8 +427,12 @@ document.addEventListener('click',async e=>{
   if(ds.sx){t.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));t.classList.add('on');return}
   /* saisie de séance (repris du carnet v12) */
   if(ds.stp&&V.tab==='seance'){const d=ds.rn!=null?sd(G.runners[+ds.rn],V.sid):curD();const o=JSON.parse(ds.o||'{}');const isT=ds.tm==='1';const dl_=+ds.dl;const cur=isT?parseT(getPath(d,ds.stp)):num(getPath(d,ds.stp));
-    let nv=cur==null?(o.s0!=null?o.s0:(o.mn!=null?o.mn:0)):cur+dl_;if(o.mn!=null)nv=Math.max(o.mn,nv);if(o.mx!=null)nv=Math.min(o.mx,nv);nv=R(nv*10)/10;
-    setPath(d,ds.stp,isT?fT(nv):String(nv).replace('.',','));if(ds.stp==='vj'){const m=vmaOf(G.runners[V.ri||0],V.sid);if(m!=null&&Math.abs(nv-m)<0.05)delete d.vj}
+    const rv=ds.rn!=null?G.runners[+ds.rn]:G.runners[V.ri||0];
+    let nv=cur==null?(o.s0!=null?o.s0:(o.mn!=null?o.mn:0)):cur+dl_;
+    /* v6.6 : « Ma VMA du jour » vide → on part de la VMA mesurée et on va au pas suivant DANS LE SENS du bouton (12 → 12,5 / 11,5 ; 12,84 → 13 / 12,5).
+       Avant : la valeur de départ était posée quel que soit le bouton, puis effacée si elle égalait la VMA mesurée : boutons sans effet. Sans VMA mesurée : 12. */
+    if(ds.stp==='vj'&&cur==null){const m=vmaOf(rv,V.sid),p=Math.abs(dl_)||VJ_PAS;if(m!=null)nv=dl_>0?(Math.floor(m/p+1e-6)+1)*p:(Math.ceil(m/p-1e-6)-1)*p}if(o.mn!=null)nv=Math.max(o.mn,nv);if(o.mx!=null)nv=Math.min(o.mx,nv);nv=R(nv*10)/10;
+    setPath(d,ds.stp,isT?fT(nv):String(nv).replace('.',','));if(ds.stp==='vj'){const m=vmaOf(rv,V.sid);if(m!=null&&Math.abs(nv-m)<0.05)delete d.vj}
     if(ds.bin&&ds.rn!=null)G.runners.forEach((r,j)=>{if(j!==+ds.rn){const dd=sd(r,V.sid);dd.ct=JSON.parse(JSON.stringify(d.ct||{}))}});   /* v4.3 : contrat d'équipe recopié */
     fixP(d);saveS();return keepScroll(render)}
   if(ds.set!==undefined&&V.tab==='seance'){const d=ds.rn!=null?sd(G.runners[+ds.rn],V.sid):curD();let val=ds.v;if(getPath(d,ds.set)===val&&!ds.set.startsWith('bl.cr'))val='';setPath(d,ds.set,val);fixP(d);saveS();return keepScroll(render)}
@@ -571,6 +575,9 @@ document.addEventListener('change',async e=>{const el=e.target;
     catch(x){toast('Ce fichier n’est pas un carnet de groupe.')}
     el.value='';return}
   if(!G)return;
+  /* v6.6 : « Ma VMA du jour » tapée à la main : vide, 0, négative ou illisible → on revient à la VMA mesurée ; hors bornes → ramenée à 6 ou 24 km/h */
+  if(el.dataset.p==='vj'&&V.tab==='seance'){const r=G.runners[el.dataset.rn!=null?+el.dataset.rn:(V.ri||0)],d=sd(r,V.sid),x=num(el.value),m=vmaOf(r,V.sid);
+    if(x==null||x<=0)delete d.vj;else{const y=R(Math.min(VJ_MAX,Math.max(VJ_MIN,x))*10)/10;if(m!=null&&Math.abs(y-m)<0.05)delete d.vj;else d.vj=String(y).replace('.',',')}saveS()}
   if((el.dataset.p&&V.tab==='seance')||el.dataset.vm!==undefined)keepScroll(render);
 });
 /* balayage gauche / droite pour changer d'étape (mode une étape à la fois) */

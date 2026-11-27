@@ -242,8 +242,8 @@ header{padding-top:12px}
 .todo{background:var(--track-soft);border-radius:var(--r-sm);padding:10px 12px;margin:8px 0}.todo p{margin:0 0 6px}
 .chbig{display:flex;flex-direction:column;align-items:center;border-radius:24px;padding:24px 12px;margin:12px 0;color:#fff;background:var(--tartan)}
 .chbig{background:var(--ch-run)}.chbig.rest{background:var(--ch-rest)}.chbig.done,.chbig.pre{background:var(--ch-pre)}
-/* v6.15 : couleurs propres au chrono (le thème redéfinit --lagoon en rouge) : course rouge, récupération verte — comme Demi-fond prof */
-:root{--ch-run:#c2412d;--ch-rest:#15803d;--ch-pre:#12222b}:root[data-theme="dark"]{--ch-pre:#24414c}
+/* v6.15 : couleurs propres au chrono (le thème redéfinit --lagoon en rouge) : règle commune : effort VERT, repos ROUGE (v6.16) */
+:root{--ch-run:#15803d;--ch-rest:#b91c1c;--ch-pre:#12222b}:root[data-theme="dark"]{--ch-pre:#24414c}
 .chbig .chreste{margin-top:10px;padding:6px 16px;border-radius:999px;background:rgba(0,0,0,.22);font-size:24px;font-weight:800}.chbig .chreste em{font-style:normal;font-size:34px;font-weight:900;font-variant-numeric:tabular-nums}
 .chbig span{font-size:22px;font-weight:800}.chbig b{font-size:min(28vw,150px);line-height:1;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
 .il{display:inline}
